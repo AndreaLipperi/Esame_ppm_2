@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-
+import psycopg2
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
