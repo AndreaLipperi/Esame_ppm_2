@@ -82,25 +82,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',  # Database predefinito (puoi cambiarlo se vuoi)
     },
     'ingrosso': {
-        'ATOMIC_REQUESTS': False,
-        'AUTOCOMMIT': True,  # Abilita la conferma automatica
-        'CONN_HEALTH_CHECKS': True,  # Abilita il controllo della salute della connessione
-        'CONN_MAX_AGE': 300,  # Imposta una durata massima della connessione (in secondi), ad esempio 300 secondi (5 minuti)
         'ENGINE': 'django.db.backends.sqlite3',
-        'HOST': '',
-        'NAME': PosixPath('/var/task/ingrossodb.sqlite3'),
-        'OPTIONS': {},
-        'PASSWORD': '********************',
-        'PORT': '',
-        'TEST': {
-            'CHARSET': None,
-            'COLLATION': None,
-            'MIGRATE': True,
-            'MIRROR': None,
-            'NAME': None
-        },
-        'TIME_ZONE': None,
-        'USER': ''
+        'NAME': BASE_DIR / 'ingrossidb.sqlite3',
     }
 
 }
