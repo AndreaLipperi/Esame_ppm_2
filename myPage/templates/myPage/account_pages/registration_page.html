@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Create your account</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        input {
+            font-size: 0.6em;
+            margin: 1%;
+        }
+        #datas {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+        }
+        .txt, input[type="text"], input[type="password"] {
+            display: inline-block;
+        }
+        input[type="text"], input[type="password"] {
+            margin-left: 30%;
+            margin-top: -2.5%;
+            font-size: 0.6em;
+            display: block; /* Imposta tutti gli input di tipo testo e password su display block */
+            width: 20%; /* Aggiungi questa regola per impostare la larghezza degli input */
+        }
+        #btn {
+            width: 40%;
+            flex-direction: row;
+            align-items: center;
+        }
+        #controllo_psw, #controllo_conf_psw {
+            font-size: 0.5em;
+        }
+        #controllo_psw span{
+            color: red;
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 2em;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: normal;
+            }
+            #datas {
+                margin-left: 2%;
+                width: 50%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            input[type="text"], input[type="password"] {
+                margin-left: 3%;
+                margin-top: 1%;
+                font-size: 0.6em;
+                display: block; /* Imposta tutti gli input di tipo testo e password su display block */
+                width: 100%; /* Aggiungi questa regola per impostare la larghezza degli input */
+            }
+        }
+    </style>
+</head>
+<body>
+    <form name="registration_form" action="{% url 'inserisci_dati' %}" method="POST">
+        {% csrf_token %}
+        <h1>INSERISCI I TUOI DATI</h1>
+        <div id="datas">
+            <p><span class="txt">EMAIL</span> <input type="text" name="email" placeholder="prova@email.dominio" required pattern="[^@]+@[^@]+\.[a-zA-Z]{2,}" title="Per favore, inserisci un indirizzo email valido."></p>
+            <p><span class="txt">USERNAME</span> <input type="text" name="username" placeholder="username..." required></p>
+            <p><span class="txt">PASSWORD</span><input type="password" name="psw" id="psw" placeholder="password..." oninput="control_psw(); compare_psw()" required><input type="button" id="mostra_nascondi_psw" value="Mostra Password" onclick="showHidePsw('psw', 'mostra_nascondi_psw')">
+            <div id="controllo_psw">
+                La password deve contenere:<br>
+            <span id="control_caratteri">- almeno otto caratteri</span><br>
+            <span id="control_numeri">- almeno un numero</span><br>
+            <span id="control_maiuscole">- almeno una maiuscola</span>
+            </div></p>
+            <p><span class="txt">CONFERMA<br> PASSWORD </span><input type="password" id="conf_psw" placeholder="conferma password..." oninput="compare_psw()" required><input type="button" id="mostra_nascondi_conf_psw" value="Mostra Password" onclick="showHidePsw('conf_psw', 'mostra_nascondi_conf_psw')"><div id="controllo_conf_psw"></div></p>
+        </div>
+        <div id="btn">
+            <input type="submit" id="crea_btn" value="INSERISCI" disabled>
+            <input type="reset" id="reset_btn" value="CANCELLA" onclick="cancel_div()">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'index' %}')">
+        </div>
+    </form>
+    {% if message %}
+        <script>
+            alert("{{ message }}");
+        </script>
+    {% endif %}
+    <script>
+        var control_on_psw=false;
+        var control_on_psw_conf=false;
+        var submitButton = document.getElementById("crea_btn");
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+        function control_psw() {
+            var psw = document.getElementById("psw").value; // Utilizza l'ID corretto per l'input della password
+            var uppercaseRegex = /[A-Z]/;
+            var numberRegex = /\d/;
+            var control_caratteri = document.getElementById("control_caratteri");
+            var control_maiuscole = document.getElementById("control_maiuscole");
+            var control_numeri = document.getElementById("control_numeri");
+            if (psw.length < 8 || !uppercaseRegex.test(psw) || !numberRegex.test(psw)) { // Inverti l'operatore logico per il controllo del numero
+                control_on_psw=false;
+                submitButton.setAttribute("disabled", "disabled");
+            }
+            if (psw.length >= 8) {
+                control_caratteri.style.color = "green";
+            } else {
+                control_caratteri.style.color = "red";
+            }
+            if (uppercaseRegex.test(psw)) {
+                control_maiuscole.style.color = "green";
+            } else {
+                control_maiuscole.style.color = "red";
+            }
+            if (numberRegex.test(psw)) {
+                control_numeri.style.color = "green";
+            } else {
+                control_numeri.style.color = "red";
+            }
+            if (psw.length >= 8 && uppercaseRegex.test(psw) && numberRegex.test(psw)) {
+                control_on_psw = true;
+                if(control_on_psw && control_on_psw_conf) {
+                    submitButton.removeAttribute("disabled");
+                }
+            }
+        }
+        function compare_psw() {
+            var psw = document.getElementById("psw").value;
+            var conf_psw = document.getElementById("conf_psw").value;
+            var div = document.getElementById("controllo_conf_psw");
+            if (psw!==conf_psw) {
+                control_on_psw_conf=false;
+                div.style.color = "red";
+                div.innerHTML = "Le password con coincidono";
+                submitButton.setAttribute("disabled", "disabled");
+            } else {
+                control_on_psw_conf=true;
+                div.style.color = "green";
+                div.innerHTML = "Le password coincidono";
+                if(control_on_psw && control_on_psw_conf) {
+                    submitButton.removeAttribute("disabled");
+                }
+            }
+        }
+        function cancel_div() {
+            var div_1 = document.getElementById("controllo_psw");
+            var div_2 = document.getElementById("controllo_conf_psw");
+            var spans = div_1.getElementsByTagName("span");
+            for (var i = 0; i < spans.length; i++) {
+                spans[i].style.color = "red";
+            }
+            div_2.innerHTML = "";
+        }
+
+        function showHidePsw(id_psw, id_btn) {
+            var psw_txt = document.getElementById(id_psw);
+            var btn = document.getElementById(id_btn);
+
+            if (psw_txt.type==="password") {
+                btn.value = "Nascondi Password";
+                psw_txt.type="text";
+            } else {
+                btn.value = "Mostra Password";
+                psw_txt.type="password";
+            }
+        }
+    </script>
+</body>
+</html>

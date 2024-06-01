@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>IL TUO INGROSSO A PORTATA DI CLICK</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #choices {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #datas {
+            font-size: 0.8em;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Spazio tra le sezioni delle categorie */
+        }
+
+        .grid_titoli {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+        .grid_dati {
+            display: grid;
+            background-color: ivory;
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+
+        .grid_item_titoli {
+            padding: 5px; /* Padding per separare i titoli */
+            border-bottom: 2px solid #000; /* Aggiunge una linea inferiore per separare i titoli dalla griglia dei dati */
+        }
+
+        .grid_item_dati {
+            padding: 5px; /* Padding per separare i dati */
+            border: 2px solid #ccc; /* Aggiunge una linea inferiore per separare le righe dei dati */
+        }
+        #header {
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 1);
+            width: 100%;
+            height: 7%;
+            position: fixed;
+            top:0;
+            z-index: 1000;
+        }
+
+        #sottomenu {
+            background-color: rgba(255, 255, 255, 1);
+            width: 30%;
+            height: 20%;
+            z-index: 1000;
+            position: fixed;
+            top: 6%; /* Posiziona il sottomenu subito sotto il header */
+            left: 0;
+            display: none;
+        }
+        #sottomenu a {
+            color: black;
+            text-decoration: none;
+        }
+        #menu {
+            font-size: 1em;
+            position: fixed;
+            top: 1%;
+            left: 1%;
+        }
+
+        #logout {
+            font-size: 1em;
+            position: absolute;
+            top:5px;
+            right: 5px;
+        }
+        #search, #search_btn {
+            font-size: 0.8em;
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 1em;
+            }
+
+            #datas {
+                font-size: 0.6em;
+                display: flex;
+                flex-direction: column;
+                gap: 10px; /* Spazio tra le sezioni delle categorie */
+            }
+            #header {
+                height: 4%;
+            }
+            #sottomenu {
+                top: 4%;
+                height: 10%;
+                width: 35%;
+            }
+        }
+    </style>
+    <!-- Includi jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+        function showSottomenu() {
+            var sottomenu = document.getElementById("sottomenu");
+            if (sottomenu.style.display==="none") {
+                sottomenu.style.display="block";
+            } else {
+                sottomenu.style.display="none";
+            }
+        }
+    </script>
+
+
+</head>
+<body>
+<form name="homepage" method="post">
+    {% csrf_token %}
+    <div id="header">
+        <span id="menu" onmouseenter="showSottomenu()" onclick="showSottomenu()"> &#x2630;</span>
+        <input type="submit" id="logout" value="ESCI" onclick="setFormAction(event, '{% url 'index' %}')">
+    </div>
+    <div id="sottomenu">
+        <a href="{% url 'cart' %}">Carrello ></a> <br>
+        <a href="{% url 'orders' %}">I miei ordini ></a> <br>
+        <a href="{% url 'modify_data_account' %}">Il mio Account ></a><br>
+        <a href="{% url 'delete_acc_page' %}">Cancella Account ></a>
+    </div>
+    <h1>ECCO TUTTI I PRODOTTI CHE ABBIAMO</h1>
+    <div id="options" {% if not show_options %} style="display: none;" {% endif %}>
+        <h3>i prodotti sono divisi in categorie e sottocatagorie, scegli qui sotto quelle che vuoi cercare</h3>
+        <div id="choices">
+            <label for="selezione">Scegli una categoria specifica:</label>
+            <select id="selezione" name="selezione">
+                <option value="">Seleziona</option>
+                {% for option_data_cat in options_data_cat %}
+                    <option value="{{ option_data_cat.name }}">{{ option_data_cat.name }}</option>
+                {% endfor %}
+            </select>
+            <label for="subcategories">Scegli una sottocategoria:</label>
+            <select id="subcategories" name="subcategories">
+                <option value="">Seleziona</option>
+            </select>
+            <h3>Se vuoi puoi anche filtrare per fornitore</h3>
+            <label for="providers">Scegli un fornitore:</label>
+            <select id="providers" name="providers">
+                <option value="">Seleziona</option>
+                {% for option_data_prov in options_data_prov %}
+                    <option value="{{ option_data_prov.name_provider }}">{{ option_data_prov.name_provider }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <h3>Oppure cercare direttamente per descrizione</h3>
+    una volta cercato, clicca nuovamente su cerca per ricaricare la pagina
+    <input type="text" id="search" name="search" placeholder="Ricerca..."><input type="submit" id="search_btn" value="Cerca &#x1F50D;" onclick="setFormAction(event, '{% url 'search_product' %}')">
+    <div id="datas">
+        {% for option_data_cat in options_data_cat %}
+            <p id="cat_prod" {% if not show_options %} style="display: none;" {% endif %}>Categoria prodotti: <b>{{ option_data_cat.name }}</b></p>
+            <div class="grid_titoli">
+                <div class="grid_item_titoli">Sottocategoria</div>
+                <div class="grid_item_titoli">Fornitore</div>
+                <div class="grid_item_titoli">Prezzo Unitario (non scontato)</div>
+                <div class="grid_item_titoli">Descrizione</div>
+                <div class="grid_item_titoli">Quantità disponibile</div>
+                <div class="grid_item_titoli">Sconto</div>
+                <div class="grid_item_titoli"></div>
+            </div>
+            <div class="grid_dati">
+                {% for store_item in option_data_cat.store_data %}
+                    <div class="grid_item_dati">{{ store_item.sottocategoria_nome }}</div>
+                    <div class="grid_item_dati">{{ store_item.fornitore_username }}</div>
+                    <div class="grid_item_dati">€ {{ store_item.prezzo }}</div>
+                    <div class="grid_item_dati">{{ store_item.descrizione }}</div>
+                    <div class="grid_item_dati">{{ store_item.quantita_disponibile }}</div>
+                    <div class="grid_item_dati">{{ store_item.sconto }}</div>
+                    <div class="grid_item_dati"><a href="{% url 'insert_into_cart' store_id=store_item.id_store %}">Inserisci nel carrello</a></div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if message %}
+        <script>
+            alert("{{ message }}");
+        </script>
+    {% endif %}
+</form>
+<script>
+    $(document).ready(function() {
+        $('#selezione').change(function() {
+            var categoryName = $(this).val();
+            if ($(this).val() === '') {
+                // Reindirizza alla homepage
+                window.location.href = '/homepage/'; // Assicurati di sostituire '/' con l'URL effettivo della tua homepage
+            }
+            $.ajax({
+                url: '/get_subcategories/',  // Assicurati che questo URL sia corretto
+                data: {
+                    'category': categoryName
+                },
+                success: function(data) {
+                    var $subselect = $('#subcategories');
+                    $subselect.empty();
+                    $subselect.append('<option value="">Seleziona</option>');
+                    $.each(data, function(index, suboption) {
+                        $subselect.append('<option value="' + suboption.id + '">' + suboption.name + '</option>');
+                    });
+                }
+            });
+        });
+    });
+    $(document).ready(function() {
+        $('#selezione').change(function() {
+            var categoryName = $(this).val();
+            $.ajax({
+                url: '{% url "get_store_data_for_single_cat" %}',
+                data: {
+                    'category': categoryName
+                },
+                success: function(data) {
+                    var $datas = $('#datas');
+                    $datas.empty();
+                    if (data.length > 0) {
+                        $datas.append(`
+                        <div class="grid_titoli">
+                            <div class="grid_item_titoli">Sottocategoria</div>
+                            <div class="grid_item_titoli">Fornitore</div>
+                            <div class="grid_item_titoli">Prezzo Unitario (non scontato)</div>
+                            <div class="grid_item_titoli">Descrizione</div>
+                            <div class="grid_item_titoli">Quantità disponibile</div>
+                            <div class="grid_item_titoli">Sconto</div>
+                            <div class="grid_item_titoli"></div>
+                        </div>
+                    `);
+                        $.each(data, function(index, item) {
+                            $datas.append(`
+                            <div class="grid_dati">
+                                <div class="grid_item_dati">${item.sottocategoria_nome}</div>
+                                <div class="grid_item_dati">${item.fornitore_username}</div>
+                                <div class="grid_item_dati">€ ${item.prezzo}</div>
+                                <div class="grid_item_dati">${item.descrizione}</div>
+                                <div class="grid_item_dati">${item.quantita_disponibile}</div>
+                                <div class="grid_item_dati">${item.sconto}</div>
+                                <div class="grid_item_dati"><a href="/insert_into_cart/${item.id_store}">Inserisci nel carrello</a></div>
+                            </div>
+                        `);
+                        });
+
+                    } else {
+                        $datas.append('<p>Nessun prodotto trovato per questa categoria.</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Errore nella chiamata AJAX:', error);
+                }
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        $('#subcategories, #providers').change(function() {
+            var subcategoryId = $('#subcategories').val();
+            var provider = $('#providers').val();  // Ottieni il valore del fornitore selezionato
+            if ($(this).val() === '') {
+                // Reindirizza alla homepage
+                window.location.href = '/homepage/'; // Assicurati di sostituire '/' con l'URL effettivo della tua homepage
+            }
+            $.ajax({
+                url: '{% url "get_store_data_for_single_subcat_or_prov" %}',  // Assicurati che questo URL sia corretto
+                data: {
+                    'subcategory_id': subcategoryId,
+                    'provider': provider,  // Passa il valore del fornitore come parametro
+                },
+                success: function(data) {
+                    var $datas = $('#datas');
+                    $datas.empty();
+                    if (data.length > 0) {
+                        $datas.append(`
+                        <div class="grid_titoli">
+                            <div class="grid_item_titoli">Sottocategoria</div>
+                            <div class="grid_item_titoli">Fornitore</div>
+                            <div class="grid_item_titoli">Prezzo Unitario (non scontato)</div>
+                            <div class="grid_item_titoli">Descrizione</div>
+                            <div class="grid_item_titoli">Quantità disponibile</div>
+                            <div class="grid_item_titoli">Sconto</div>
+                            <div class="grid_item_titoli"></div>
+                        </div>
+                    `);
+                        $.each(data, function(index, item) {
+                            $datas.append(`
+                            <div class="grid_dati">
+                                <div class="grid_item_dati">${item.sottocategoria_nome}</div>
+                                <div class="grid_item_dati">${item.fornitore_username}</div>
+                                <div class="grid_item_dati">€ ${item.prezzo}</div>
+                                <div class="grid_item_dati">${item.descrizione}</div>
+                                <div class="grid_item_dati">${item.quantita_disponibile}</div>
+                                <div class="grid_item_dati">${item.sconto}</div>
+                                <div class="grid_item_dati"><a href="/insert_into_cart/${item.id_store}">Inserisci nel carrello</a></div>
+                            </div>
+                        `);
+                        });
+                    } else {
+                        $datas.append('<p>Nessun prodotto trovato per questa categoria.</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Errore nella chiamata AJAX:', error);
+                }
+            });
+        });
+    });
+    $(document).ready(function() {
+        $('#search').on('input', function() {
+            var query = $(this).val();
+            $.ajax({
+                url: '{% url 'search_product' %}',
+                method: 'POST',
+                data: { 'search': query },
+                dataType: 'json',
+                success: function(data) {
+                    var $datas = $('#datas');
+                    $datas.empty();
+                    if (data.length > 0) {
+                        $datas.append(`
+                        <div class="grid_titoli">
+                            <div class="grid_item_titoli">Sottocategoria</div>
+                            <div class="grid_item_titoli">Fornitore</div>
+                            <div class="grid_item_titoli">Prezzo Unitario (non scontato)</div>
+                            <div class="grid_item_titoli">Descrizione</div>
+                            <div class="grid_item_titoli">Quantità disponibile</div>
+                            <div class="grid_item_titoli">Sconto</div>
+                            <div class="grid_item_titoli"></div>
+                        </div>
+                    `);
+                        $.each(data, function(index, item) {
+                            $datas.append(`
+                            <div class="grid_dati">
+                                <div class="grid_item_dati">${item.sottocategoria_nome}</div>
+                                <div class="grid_item_dati">${item.fornitore_username}</div>
+                                <div class="grid_item_dati">€ ${item.prezzo}</div>
+                                <div class="grid_item_dati">${item.descrizione}</div>
+                                <div class="grid_item_dati">${item.quantita_disponibile}</div>
+                                <div class="grid_item_dati">${item.sconto}</div>
+                                <div class="grid_item_dati"><a href="/insert_into_cart/${item.id_store}">Inserisci nel carrello</a></div>
+                            </div>
+                        `);
+                        });
+                    } else {
+                        $datas.append('<p>Nessun prodotto trovato</p>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Errore nella chiamata AJAX:', error);
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

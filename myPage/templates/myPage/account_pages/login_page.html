@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>LOG IN</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        input {
+            margin: 1%;
+            font-size: 0.6em;
+        }
+        #btn {
+            display: inline-flex;
+        }
+        a {
+            font-size: 0.5em;
+            margin-top: 1%;
+            color: black;
+        }
+        a:hover {
+            color:red;
+        }
+    </style>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <form name="login" method="post">
+        {% csrf_token %}
+        <h1>INSERISCI I TUOI DATI</h1>
+        USERNAME <input type="text" name="username" placeholder="username..." required>
+        PASSWORD <input type="password" name="psw" id="psw" placeholder="password..." required><input type="button" id="mostra_nascondi_psw" value="Mostra Password" onclick="showHidePsw('psw', 'mostra_nascondi_psw')">
+        <div id="btn">
+            <input type="submit" id="send_btn" value="ACCEDI">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'index' %}')">
+        </div>
+        <a href="{% url 'forgot_psw' %}">Password dimenticata...</a>
+    </form>
+
+    {% if message %}
+        <script>
+            alert("{{ message }}");
+        </script>
+    {% endif %}
+    <script>
+        $(document).ready(function(){
+            $('form[name="login"]').on('submit', function(event){
+                event.preventDefault(); // Previene il comportamento predefinito del submit
+                $.ajax({
+                    url: '/controlla-dati/',
+                    type: 'POST',
+                    data: $(this).serialize(), // Invia i dati del form
+                    success: function(response) {
+                        if(response.successo) {
+                            window.location.href = response.redirect_url;
+                        } else {
+                            alert(response.messaggio);
+                        }
+                    },
+                    error: function(error) {
+                        $('#risultato').html("Errore nella richiesta");
+                    }
+                });
+            });
+        });
+
+        function showHidePsw(id_psw, id_btn) {
+            var psw_txt = document.getElementById(id_psw);
+            var btn = document.getElementById(id_btn);
+
+            if (psw_txt.type==="password") {
+                btn.value = "Nascondi Password";
+                psw_txt.type="text";
+            } else {
+                btn.value = "Mostra Password";
+                psw_txt.type="password";
+            }
+        }
+    </script>
+</body>
+</html>

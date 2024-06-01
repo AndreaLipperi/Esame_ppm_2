@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>I TUOI ORDINI</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #datas {
+            font-size: 0.8em;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Spazio tra le sezioni delle categorie */
+        }
+        .grid_titoli {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+        .grid_dati {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+
+        #btn {
+            display: inline-flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        #back_btn {
+            margin: 2%;
+            font-size: 1em;
+        }
+        .grid_item_titoli {
+            padding: 5px; /* Padding per separare i titoli */
+            border-bottom: 1px solid #000; /* Aggiunge una linea inferiore per separare i titoli dalla griglia dei dati */
+        }
+        .grid_item_dati {
+            padding: 5px; /* Padding per separare i dati */
+            border-bottom: 1px solid #ccc; /* Aggiunge una linea inferiore per separare le righe dei dati */
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 1em;
+            }
+
+            #quantity {
+                width:40%;
+            }
+        }
+    </style>
+    <!-- Includi jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+    </script>
+</head>
+<body>
+    <form name="orders" method="post">
+        {% csrf_token %}
+        <h1>ECCO LO STORICO DEI TUOI ORDINI</h1>
+        <label for="selezione">Filtra ordini per status:</label>
+        <select id="selezione" name="selezione">
+            <option value="">Seleziona</option>
+            <option value="S">In sospeso</option>
+            <option value="A">Accetate</option>
+            <option value="R">Rifiutate</option>
+        </select>
+        <div id="datas">
+            <div class="grid_titoli">
+                <div class="grid_item_titoli">Status</div>
+                <div class="grid_item_titoli">Data Ordine</div>
+                <div class="grid_item_titoli"></div>
+            </div>
+            <div class="grid_dati">
+                {% for orders_item in orders_data %}
+                    <div class="grid_item_dati">{{ orders_item.status }}</div>
+                    <div class="grid_item_dati">{{ orders_item.data }}</div>
+                    <div class="grid_item_dati"><a href="{% url 'order_details' order_id=orders_item.order_id %}">Vedi dettagli ordine</a></div>
+                {% endfor %}
+            </div>
+        </div>
+            <div id="btn">
+                <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage' %}')">
+            </div>
+            {% if message %}
+                <script>
+                    alert("{{ message }}");
+                </script>
+            {% endif %}
+    </form>
+    <script>
+        $(document).ready(function() {
+            $('#selezione').change(function() {
+                var status = $(this).val();
+                if ($(this).val() === '') {
+                    window.location.reload();
+                }
+                $.ajax({
+                    url: '{% url "filter_orders_by_status" %}',
+                    data: {
+                        'status': status
+                    },
+                    success: function(data) {
+                        var $datas = $('#datas');
+                        $datas.empty();
+                        if (data.length > 0) {
+                            $datas.append(`
+                                <div class="grid_titoli">
+                                    <div class="grid_item_titoli">Status</div>
+                                    <div class="grid_item_titoli">Data Ordine</div>
+                                    <div class="grid_item_titoli"></div>
+                                </div>
+                            `);
+                            $.each(data, function(index, item) {
+                                $datas.append(`
+                                <div class="grid_dati">
+                                    <div class="grid_item_dati">${item.status_order}</div>
+                                    <div class="grid_item_dati">${item.date_order}</div>
+                                    <div class="grid_item_dati"><a href="/order_details/${item.order_id}">Vedi dettagli ordine</a></div>
+                                </div>
+                            `);
+                            });
+                        } else {
+                            $datas.append('<p>Nessun ordine trovato per questo status.</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Errore nella chiamata AJAX:', error);
+                    }
+                });
+            });
+        });
+        // Funzione per controllare il valore degli input di tipo "number"
+        function checkQuantityInputs() {
+            // Seleziona tutti gli input di tipo "number"
+            var quantityInputs = document.querySelectorAll('input[type="number"]');
+            var disableButton = false;
+
+            // Itera su tutti gli input
+            quantityInputs.forEach(function(input) {
+                // Se almeno uno ha un valore di 1, disabilita il pulsante "INVIA ORDINE"
+                if (input.value == 0) {
+                    disableButton = true;
+                    return; // Esci dalla funzione
+                }
+            });
+
+            // Disabilita/abilita il pulsante "INVIA ORDINE" in base al valore di disableButton
+            document.getElementById('do_order').disabled = disableButton;
+        }
+
+        // Aggiungi un listener per l'evento 'input' a tutti gli input di tipo "number"
+        document.addEventListener('DOMContentLoaded', function() {
+            var quantityInputs = document.querySelectorAll('input[type="number"]');
+            quantityInputs.forEach(function(input) {
+                input.addEventListener('input', checkQuantityInputs);
+            });
+
+            // Esegui il controllo iniziale
+            checkQuantityInputs();
+        });
+    </script>
+</body>
+</html>

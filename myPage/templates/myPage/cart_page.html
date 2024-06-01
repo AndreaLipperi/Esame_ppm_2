@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>IL TUO CARRELLO</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #datas {
+            font-size: 0.8em;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Spazio tra le sezioni delle categorie */
+        }
+        .grid_titoli {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+        .grid_dati {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+
+        #btn {
+            display: inline-flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        #back_btn, #reset_btn, #do_order {
+            margin: 2%;
+            font-size: 1em;
+        }
+        .grid_item_titoli {
+            padding: 5px; /* Padding per separare i titoli */
+            border-bottom: 1px solid #000; /* Aggiunge una linea inferiore per separare i titoli dalla griglia dei dati */
+        }
+        #quantity {
+            width:20%;
+        }
+        .grid_item_dati {
+            padding: 5px; /* Padding per separare i dati */
+            border-bottom: 1px solid #ccc; /* Aggiunge una linea inferiore per separare le righe dei dati */
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 1em;
+            }
+
+            #quantity {
+                width:40%;
+            }
+        }
+    </style>
+    <!-- Includi jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+        function setOrder(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+
+            // Ottiene tutti gli input di tipo "number" con la classe "quantity"
+            var quantityInputs = form.querySelectorAll('.quantity');
+            var quantities = [];
+
+            // Itera su tutti gli input per ottenere i valori
+            quantityInputs.forEach(function(input) {
+                quantities.push(input.value); // Aggiungi il valore all'array quantities
+            });
+
+            // Crea una stringa di query con i valori di quantity separati da virgola
+            var queryString = 'quantity=' + quantities.join(',');
+
+            // Imposta dinamicamente l'attributo action con la stringa di query
+            form.action = actionUrl + '?' + queryString;
+            form.submit(); // Invia il form
+        }
+    </script>
+</head>
+<body>
+    <form name="carrello" method="post">
+        {% csrf_token %}
+        <h1>ECCO I PRODOTTI DEL TUO CARRELLO</h1>
+        <div id="datas">
+            <div class="grid_titoli">
+                <div class="grid_item_titoli">Fornitore</div>
+                <div class="grid_item_titoli">Prezzo Unitario (non scontato)</div>
+                <div class="grid_item_titoli">Descrizione</div>
+                <div class="grid_item_titoli">Quantità disponibile</div>
+                <div class="grid_item_titoli">Sconto</div>
+                <div class="grid_item_titoli">Quantità richiesta</div>
+                <div class="grid_item_titoli"></div>
+            </div>
+            <div class="grid_dati">
+                {% for cart_item in cart_data %}
+                    <div class="grid_item_dati">{{ cart_item.fornitore_nome }}</div>
+                    <div class="grid_item_dati">€ {{ cart_item.prezzo }}</div>
+                    <div class="grid_item_dati">{{ cart_item.descrizione }}</div>
+                    <div class="grid_item_dati">{{ cart_item.quantita_disponibile }}</div>
+                    <div class="grid_item_dati">{{ cart_item.sconto }}</div>
+                    <div class="grid_item_dati">
+                        <input type="number"  id="quantity" name="quantity[]" min="1" max="{{ cart_item.quantita_disponibile }}" step="1" value="0">
+                    </div>
+                    <div class="grid_item_dati">
+                        <a href="{% url 'delete_one_prod_form_cart' cart_id=cart_item.cart_id %}">Elimina dal carrello</a>
+                    </div>
+                {% endfor %}
+            </div>
+            <div id="btn">
+                <input type="submit" id="do_order" value="INVIA ORDINE" onclick="setOrder(event, '{% url 'do_order' %}')" disabled>
+                <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage' %}')">
+            </div>
+            {% if message %}
+                <script>
+                    alert("{{ message }}");
+                </script>
+            {% endif %}
+        </div>
+    </form>
+    <script>
+        // Funzione per controllare il valore degli input di tipo "number"
+        function checkQuantityInputs() {
+            // Seleziona tutti gli input di tipo "number"
+            var quantityInputs = document.querySelectorAll('input[type="number"]');
+            var disableButton = false;
+            if (quantityInputs.length === 0) {
+                disableButton=true;
+            } else {
+                // Itera su tutti gli input
+                quantityInputs.forEach(function (input) {
+                    // Se almeno uno ha un valore di 1, disabilita il pulsante "INVIA ORDINE"
+                    if (input.value == 0) {
+                        disableButton = true;
+                        return; // Esci dalla funzione
+                    }
+                });
+            }
+            // Disabilita/abilita il pulsante "INVIA ORDINE" in base al valore di disableButton
+            document.getElementById('do_order').disabled = disableButton;
+        }
+
+        // Aggiungi un listener per l'evento 'input' a tutti gli input di tipo "number"
+        document.addEventListener('DOMContentLoaded', function() {
+            var quantityInputs = document.querySelectorAll('input[type="number"]');
+            quantityInputs.forEach(function(input) {
+                input.addEventListener('input', checkQuantityInputs);
+            });
+
+            // Esegui il controllo iniziale
+            checkQuantityInputs();
+        });
+    </script>
+
+
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DETTAGLI ORDINE</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #datas {
+            font-size: 0.8em;
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Spazio tra le sezioni delle categorie */
+        }
+        .grid_titoli {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+        .grid_dati {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-gap: 10px; /* Spazio tra le celle della griglia */
+        }
+
+        #btn {
+            display: inline-flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+        #back_btn, #cancel_order {
+            margin: 2%;
+            font-size: 1em;
+        }
+        #cancel_order {
+            display: none;
+        }
+        .grid_item_titoli {
+            padding: 5px; /* Padding per separare i titoli */
+            border-bottom: 1px solid #000; /* Aggiunge una linea inferiore per separare i titoli dalla griglia dei dati */
+        }
+        .grid_item_dati {
+            padding: 5px; /* Padding per separare i dati */
+            border-bottom: 1px solid #ccc; /* Aggiunge una linea inferiore per separare le righe dei dati */
+        }
+        #other_datas {
+            display: none;
+        }
+        #scontato {
+            color: green;
+        }
+        #scontato, #totale {
+            margin: 3%;
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 1em;
+            }
+        }
+    </style>
+    <!-- Includi jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+        function updateTotalSum() {
+            let total = 0;
+            const prices_disconted = document.querySelectorAll('.prezzo_totale_scontato');
+            const prices = document.querySelectorAll('.prezzo_totale');
+            prices.forEach((price, index) => {
+                const discountedPrice = prices_disconted[index];
+                if (discountedPrice && parseFloat(discountedPrice.textContent) !== 0.00) {
+                    total += parseFloat(discountedPrice.textContent);
+                } else {
+                    total += parseFloat(price.textContent);
+                }
+            });
+            document.getElementById('total_cost').innerText ='€ ' + total.toFixed(2);
+        }
+        document.addEventListener("DOMContentLoaded", function() {
+            updateTotalSum();
+        });
+    </script>
+</head>
+<body>
+<form name="orders" method="post">
+    {% csrf_token %}
+    <h1>ECCO I DETTAGLI DEL TUO ORDINE</h1>
+    <div id="datas">
+        <div class="grid_titoli">
+            <div class="grid_item_titoli">Quantità Ordinata</div>
+            <div class="grid_item_titoli">Prezzo Prezzo <br>Totale - scontato</div>
+            <div class="grid_item_titoli">Prodotto</div>
+            <div class="grid_item_titoli">Sconto</div>
+            <div class="grid_item_titoli">Fornitore</div>
+        </div>
+        <div class="grid_dati">
+            {% for order_details_item in orders_details_data %}
+                <div class="grid_item_dati">{{ order_details_item.quantita }}</div>
+                <div class="grid_item_dati">
+                    <span id="totale" {% if order_details_item.prezzo_totale_scontato != "0.00" %}style="color: red; text-decoration: line-through;"{% endif %}>
+                        €<span class="prezzo_totale">{{ order_details_item.prezzo_totale }}</span>
+                    </span>
+                    <span id="scontato" {% if order_details_item.prezzo_totale_scontato == "0.00" %} style="display:none;" {% endif %}>
+                        €<span class="prezzo_totale_scontato">{{ order_details_item.prezzo_totale_scontato }}</span>
+                    </span>
+                </div>
+                <div class="grid_item_dati">{{ order_details_item.descrizione }}</div>
+                <div class="grid_item_dati">{{ order_details_item.sconto }}</div>
+                <div class="grid_item_dati">{{ order_details_item.fornitore_nome }}</div>
+                <div class="grid_item_dati" id="other_datas"><input type="text" id="status_txt" value="{{ order_details_item.status }}"><input type="text" name="order_id" value="{{ order_details_item.order_id }}"></div>
+            {% endfor %}
+        </div>
+        COSTO TOTALE ORDINE: <span id="total_cost"></span>
+        <div id="btn">
+            <input type="submit" id="cancel_order" value="ANNULLA ORDINE" onclick="setFormAction(event, '{% url 'cancel_order' %}')">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'orders' %}')">
+        </div>
+        {% if message %}
+            <script>
+                alert("{{ message }}");
+            </script>
+        {% endif %}
+    </div>
+</form>
+    <script>
+        // Funzione per controllare il valore degli input di tipo "number"
+        function showCancelBtn() {
+            var status = document.getElementById("status_txt");
+            var cancel_btn = document.getElementById("cancel_order");
+            if (status.value==="A" || status.value==="R") {
+                cancel_btn.style.display="none";
+            } else if (status.value==="S"){
+                cancel_btn.style.display="block";
+            }
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // Esegui il controllo iniziale
+            showCancelBtn();
+        });
+    </script>
+</body>
+</html>
