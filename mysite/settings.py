@@ -76,21 +76,17 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Database predefinito (puoi cambiarlo se vuoi)
-    },
     'ingrosso': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'ingrossodb.sqlite3',  # Database predefinito (puoi cambiarlo se vuoi)
+    },
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'verceldb',
         'USER': 'default',
         'PASSWORD': 'OPp2SRivk6HC',
         'HOST': 'ep-cold-night-a4jy371w-pooler.us-east-1.aws.neon.tech',   # o l'indirizzo del server PostgreSQL
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'options': '-c endpoint=ep-cold-night-a4jy371w-pooler',
-        },# Il tuo nuovo database ingrosso
+        'PORT': '5432',# Il tuo nuovo database ingrosso
     }
 
 }
