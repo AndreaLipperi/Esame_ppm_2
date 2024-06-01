@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'myPage',
-    'sslserver',
 ]
 
 MIDDLEWARE = [
@@ -87,7 +86,11 @@ DATABASES = {
         'USER': 'default',
         'PASSWORD': 'OPp2SRivk6HC',
         'HOST': 'ep-cold-night-a4jy371w-pooler.us-east-1.aws.neon.tech',   # o l'indirizzo del server PostgreSQL
-        'PORT': '',  # Il tuo nuovo database ingrosso
+        'PORT': '5432',
+        'OPTIONS': {
+            'sslmode': 'require',
+            'options': '-c endpoint=ep-cold-night-a4jy371w-pooler',
+        },# Il tuo nuovo database ingrosso
     }
 
 }
