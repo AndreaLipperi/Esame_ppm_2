@@ -6,8 +6,8 @@
   }],
   "routes" : [
     {
-      "src": "/(・*)",
-      "dest": "ysite/wsgi.py"
+      "src": "/(.*)",
+      "dest": "mysite/wsgi.py"
     }
   ]
 }
