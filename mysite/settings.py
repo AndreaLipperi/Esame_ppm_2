@@ -83,7 +83,7 @@ DATABASES = {
     },
     'ingrosso': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ingrosso_db',
+        'NAME': 'verceldb',
         'USER': 'default',
         'PASSWORD': 'OPp2SRivk6HC',
         'HOST': 'ep-cold-night-a4jy371w-pooler.us-east-1.aws.neon.tech',   # o l'indirizzo del server PostgreSQL
