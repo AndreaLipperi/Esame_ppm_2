@@ -12,7 +12,6 @@ class Users(models.Model):
         return f"username: {self.username}, email: {self.email}, password: {self.password}"
 
     class Meta:
-        managed = False
         db_table = 'users'
 
 
@@ -23,7 +22,6 @@ class Categories(models.Model):
         return self.name
 
     class Meta:
-        managed = False
         db_table = 'categories'
 
 
@@ -34,7 +32,6 @@ class Measure_units(models.Model):
         return f"name: {self.name}, abbreviation: {self.abbreviation}"
 
     class Meta:
-        managed = False
         db_table = 'measure_units'
 
 
@@ -46,7 +43,6 @@ class Subcategories(models.Model):
         return f"name= {self.name}, category: {self.category}"
 
     class Meta:
-        managed = False
         db_table = 'subcategories'
 
 
@@ -63,7 +59,6 @@ class Store(models.Model):
         return f"available_quantity= {self.available_quantity}, discount: {self.discount}, price_product: {self.price_product}, desc_prod: {self.desc_prod}, provider: {self.provider}, subcategory: {self.subcategory}, measure_units: {self.measure_units}"
 
     class Meta:
-        managed = False
         db_table = 'store'
 
 
@@ -76,7 +71,6 @@ class Providers(models.Model):
         return f"business_name: {self.business_name}, email: {self.email}, username: {self.username}"
 
     class Meta:
-        managed = False
         db_table = 'providers'
 
 
@@ -89,7 +83,6 @@ class Cart(models.Model):
         return f"quantity: {self.quantity}, store: {self.store}, user: {self.user}"
 
     class Meta:
-        managed = False
         db_table = 'cart'
 
 
@@ -102,7 +95,6 @@ class Orders(models.Model):
         return f"status: {self.status}, date_order: {self.date_order}, user: {self.user}"
 
     class Meta:
-        managed = False
         db_table = 'orders'
 
 
@@ -115,7 +107,6 @@ class OrderDetails(models.Model):
         return f"quantity: {self.quantity}, order: {self.order}, store: {self.store}"
 
     class Meta:
-        managed = False
         db_table = 'orders_details'
 
 
