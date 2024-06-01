@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
-from pathlib import Path, PosixPath
+from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,30 +79,12 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',  # Database predefinito (puoi cambiarlo se vuoi)
+        'NAME': BASE_DIR / 'db.sqlite3',
     },
     'ingrosso': {
-        'ATOMIC_REQUESTS': False,
-        'AUTOCOMMIT': True,  # Abilita la conferma automatica
-        'CONN_HEALTH_CHECKS': True,  # Abilita il controllo della salute della connessione
-        'CONN_MAX_AGE': 300,  # Imposta una durata massima della connessione (in secondi), ad esempio 300 secondi (5 minuti)
         'ENGINE': 'django.db.backends.sqlite3',
-        'HOST': '',
-        'NAME': PosixPath('/var/task/ingrossodb.sqlite3'),
-        'OPTIONS': {},
-        'PASSWORD': '********************',
-        'PORT': '',
-        'TEST': {
-            'CHARSET': None,
-            'COLLATION': None,
-            'MIGRATE': True,
-            'MIRROR': None,
-            'NAME': None
-        },
-        'TIME_ZONE': None,
-        'USER': ''
+        'NAME': BASE_DIR / 'ingrossodb.sqlite3',  # Il tuo nuovo database ingrosso
     }
-
 }
 
 DATABASE_ROUTERS = ['mysite.routers.IngrossoRouter']
