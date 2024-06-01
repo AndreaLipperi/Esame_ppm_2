@@ -83,7 +83,7 @@ DATABASES = {
     },
     'ingrosso': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'ingrossidb.sqlite3',
+        'NAME': BASE_DIR / 'ingrossodb.sqlite3',
     }
 
 }
