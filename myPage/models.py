@@ -4,12 +4,13 @@ from django.db import models
 # Create your models here.
 
 class Users(models.Model):
+    type = models.CharField(max_length=50)
     email = models.CharField(max_length=100)
     username = models.CharField(max_length=100)
     password = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"username: {self.username}, email: {self.email}, password: {self.password}"
+        return f"type: {self.type},username: {self.username}, email: {self.email}, password: {self.password}"
 
     class Meta:
         db_table = 'users'
@@ -63,12 +64,13 @@ class Store(models.Model):
 
 
 class Providers(models.Model):
-    business_name = models.CharField(max_length=100)
+    type = models.CharField(max_length=50)
+    password = models.CharField(max_length=100)
     email = models.CharField(max_length=100)
     username = models.CharField(max_length=100)
 
     def __str__(self):
-        return f"business_name: {self.business_name}, email: {self.email}, username: {self.username}"
+        return f"type: {self.type},password: {self.password}, email: {self.email}, username: {self.username}"
 
     class Meta:
         db_table = 'providers'
@@ -100,11 +102,12 @@ class Orders(models.Model):
 
 class OrderDetails(models.Model):
     quantity = models.IntegerField()
+    status = models.CharField(max_length=100)
     order = models.ForeignKey(Orders, on_delete=models.CASCADE)
     store = models.ForeignKey(Store, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"quantity: {self.quantity}, order: {self.order}, store: {self.store}"
+        return f"quantity: {self.quantity},status:{self.status}, order: {self.order}, store: {self.store}"
 
     class Meta:
         db_table = 'orders_details'

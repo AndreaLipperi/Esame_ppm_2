@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/ingrossodb.sqlite3</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="verceldb@ep-cold-night-a4jy371w-pooler.us-east-1.aws.neon.tech" uuid="4dd003cc-897f-4183-a94a-72745f854b71">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://ep-cold-night-a4jy371w-pooler.us-east-1.aws.neon.tech/verceldb?sslmode=require</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

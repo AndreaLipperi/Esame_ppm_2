@@ -1,6 +1,5 @@
 from datetime import datetime
 from decimal import Decimal
-import psycopg2
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
@@ -9,6 +8,7 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import render,get_object_or_404, redirect
 from django.conf import settings
+from pip._internal.resolution.resolvelib import provider
 
 from .models import Users, Categories, Subcategories, Store, Providers, Cart, OrderDetails, Orders, Measure_units
 
@@ -54,7 +54,7 @@ def modify_data_account(request, message=None):
     return render(request, 'account_pages/modify_data_account_page.html', context)
 
 
-def homepage(request, message=None):
+def homepage_client(request, message=None):
     if settings.GLOBAL_VARIABLE == "":
         return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
     categories = Categories.objects.all()
@@ -84,7 +84,30 @@ def homepage(request, message=None):
     if message is not None and isinstance(message, str) and message.strip() != "":
         context['message'] = message
 
-    return render(request, 'homepage.html', context)
+    return render(request, 'client/homepage_client.html', context)
+
+
+def homepage_provider(request, message=None):
+    if settings.GLOBAL_VARIABLE == "":
+        return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
+    categories = Categories.objects.all()
+    options_data_cat = []
+
+    for category in categories:
+        store_data = get_store_data_for_prov(category.name)
+        options_data_cat.append({
+            'id': category.id,
+            'name': category.name,
+            'store_data': store_data
+        })
+
+    context = {
+        'options_data_cat': options_data_cat,
+        'show_options': True,
+    }
+    if message is not None and isinstance(message, str) and message.strip() != "":
+        context['message'] = message
+    return render(request, 'provider/homepage_provider.html', context)
 
 
 def forgot_psw(request):
@@ -112,7 +135,7 @@ def cart(request, message=None):
     }
     if message:
         context['message'] = message
-    return render(request, 'cart_page.html', context)
+    return render(request, 'client/cart_page.html', context)
 
 
 def orders(request, message=None):
@@ -126,7 +149,7 @@ def orders(request, message=None):
     }
     if message:
         context['message'] = message
-    return render(request, 'orders_page.html', context)
+    return render(request, 'client/orders_page_client.html', context)
 
 
 def order_details(request, order_id):
@@ -139,7 +162,7 @@ def order_details(request, order_id):
         'orders_details_data': orders_details_data  # Assicurati che qui stai passando i dati del carrello senza incorrere in sovrascritture accidentali
     }
 
-    return render(request, 'order_details_page.html', context)
+    return render(request, 'client/order_details_page_client.html', context)
 
 
 def update_psw_page(request):
@@ -153,13 +176,21 @@ def update_psw_page(request):
 
 def controlla_dati(request):
     if request.method == 'POST':
+        type = request.POST.get('user_type')
         username_user = request.POST.get('username')
         psw_user = request.POST.get('psw')
         try:
-            user = Users.objects.get(username=username_user)
+            if type == "C":
+                user = Users.objects.get(username=username_user)
+            else:
+                user = Providers.objects.get(username=username_user)
             if check_password(psw_user, user.password):
                 settings.GLOBAL_VARIABLE = username_user
-                return JsonResponse({"successo": True, "redirect_url": "/homepage/"})
+                if type == "C":
+                    return JsonResponse({"successo": True, "redirect_url": "/homepage_client/"})
+                else:
+                    return JsonResponse({"successo": True, "redirect_url": "/homepage_provider/"})
+
             else:
                 return JsonResponse({"successo": False, "messaggio": "Password Errata"})
         except Users.DoesNotExist:
@@ -191,18 +222,23 @@ def controlla_username(request):
 
 def inserisci_dati(request):
     if request.method == 'POST':
+        type = request.POST.get('user_type')
         email = request.POST['email']
         username = request.POST['username']
         password = request.POST['psw']
-
-        # Controllo se l'username esiste già
-        if Users.objects.filter(username=username).exists() or Users.objects.filter(email=email):
-            return render(request, 'account_pages/registration_page.html', {'message': 'Username o email già esistente'})
-
+        if type=="C":
+            if Users.objects.filter(username=username).exists() or Users.objects.filter(email=email):
+                return render(request, 'account_pages/registration_page.html', {'message': 'Username o email già esistente'})
+        else:
+            if Providers.objects.filter(username=username).exists() or Providers.objects.filter(email=email):
+                return render(request, 'account_pages/registration_page.html', {'message': 'Username o email già esistente'})
         try:
             hashed_password = make_password(password)
             # Creazione dell'utente
-            Users.objects.create(email=email, username=username, password=hashed_password)
+            if type=="C":
+                Users.objects.create(email=email, username=username, password=hashed_password, type=type)
+            else:
+                Providers.objects.create(email=email, username=username, password=hashed_password, type=type)
             return render(request, 'account_pages/index.html', {'message': 'Account creato'})
         except IntegrityError:
             return JsonResponse({"successo": False, "messaggio": "Errore nel creare l'utente"})
@@ -374,12 +410,12 @@ def insert_into_cart(request, store_id):
 
         # Cerca se il prodotto è già nel carrello dell'utente
         if Cart.objects.filter(user=utente, store=store).exists():
-            return homepage(request, 'Prodotto già nel carrello')
+            return homepage_client(request, 'Prodotto già nel carrello')
 
         # Se il prodotto non è già nel carrello, aggiungilo
         Cart.objects.create(user=utente, store=store, quantity=0)
 
-        return homepage(request, 'Prodotto inserito nel carrello')
+        return homepage_client(request, 'Prodotto inserito nel carrello')
 
     # Se la richiesta non è POST, ritorna un messaggio di errore
     return JsonResponse({"successo": False, "messaggio": "Metodo non supportato"})
@@ -467,10 +503,8 @@ def get_orders_data(username):
         date_only = date_time.date().strftime('%d.%m.%Y')
         if item.status=="S" :
             txt_status = "In sospeso"
-        elif item.status=="R" :
-            txt_status = "Rifiutato"
-        elif item.status=="A" :
-            txt_status = "Accettato"
+        elif item.status=="C" :
+            txt_status = "Completato"
         order_info = {
             'status': txt_status,
             'order_id': item.id,
@@ -491,6 +525,12 @@ def get_order_details_data(order_id):
         store = item.store
         price_product = Decimal(str(store.price_product))
         price = price_product * item.quantity
+        if item.status=="S" :
+            txt_status = "In sospeso"
+        elif item.status=="A" :
+            txt_status = "Accettato"
+        else:
+            txt_status = "Rifiutato"
         if store.discount is None:
             price_discounted = 0
             discount = ""
@@ -498,13 +538,14 @@ def get_order_details_data(order_id):
             price_discounted = (price_product * (1 - Decimal(store.discount) / 100)) * item.quantity
             discount = f"{store.discount}%"
         order_details_info = {
-            'status': order.status,
+            'status_order': order.status,
             'order_id': order.id,
             'quantita': f"{item.quantity} {store.measure_units.abbreviation}",
             "prezzo_totale": f"{price:.2f}",
             'prezzo_totale_scontato': f"{price_discounted:.2f}",
             'descrizione': store.desc_prod,
             'sconto': discount,
+            'status': txt_status,
             'fornitore_nome': store.provider.username,
         }
         order_details_data.append(order_details_info)
@@ -516,11 +557,17 @@ def cancel_order(request):
     if request.method == 'POST':
         order_id = request.POST.get('order_id', '')
         order = get_object_or_404(Orders, pk=order_id)
-        order_details_items = OrderDetails.objects.filter(order=order)
+        order_details_items = OrderDetails.objects.filter(order=order, status="S")
         for item in order_details_items:
                 item.delete()
 
-        order.delete()
+        order_details_items = OrderDetails.objects.filter(order=order)
+        if len(order_details_items) == 0:
+            order.delete()
+        else:
+            order.status="C"
+            order.save()
+
         return orders(request, 'Ordine cancellato')
     else:
         return orders(request, 'Metodo non consentito')
@@ -576,7 +623,7 @@ def update_datas_account(request):
             current_user.username = username
             current_user.email = email
             current_user.save()
-            return homepage(request, "Dati modificati con successo")
+            return homepage_client(request, "Dati modificati con successo")
 
     # Gestisci il caso in cui il metodo della richiesta non sia POST
     return JsonResponse({"successo": False, "messaggio": "Metodo non supportato"})
@@ -592,13 +639,13 @@ def delete_account(request):
             orders_items = Orders.objects.filter(user=user)
             for item in orders_items:
                 if item.status=="S" :
-                    return homepage(request, "Impossibile cancellare il tuo account, è presente un ordine in sospeso")
+                    return homepage_client(request, "Impossibile cancellare il tuo account, è presente un ordine in sospeso")
             if check_password(psw, user.password):
                 settings.GLOBAL_VARIABLE = ""
                 user.delete()
                 return render(request, 'account_pages/index.html', {'message': 'Account eliminato con successo'})
             else:
-                return homepage(request, 'Password Errata')
+                return homepage_client(request, 'Password Errata')
         except Users.DoesNotExist:
             return JsonResponse({"successo": False, "messaggio": "Utente non trovato"})
 
@@ -614,12 +661,12 @@ def search_product(request):
         desc_prod_insert = request.POST.get('search', '')
         if desc_prod_insert == "":
             context['show_options'] = True
-            return homepage(request, context)
+            return homepage_client(request, context)
 
         similar_store = Store.objects.filter(desc_prod__icontains=desc_prod_insert)
         if similar_store.count() == 0:
             context['show_options'] = True
-            return homepage(request, "Non ci sono prodotti con descrizione simile a quella cercata")
+            return homepage_client(request, "Non ci sono prodotti con descrizione simile a quella cercata")
         context['show_options'] = False  # Se il messaggio è "Password Corretta", mostra il form di aggiornamento
         context['show_text'] = False
         # Costruisci una lista dei dati del negozio
@@ -657,9 +704,9 @@ def search_product(request):
             'options_data_prov': options_data_prov,
         }
 
-        return render(request, 'homepage.html', context)
+        return render(request, 'client/homepage_client.html', context)
 
-    return render(request, 'homepage.html')
+    return render(request, 'client/homepage_client.html')
 
 
 def filter_orders_by_status(request):
@@ -679,10 +726,8 @@ def filter_orders_by_status(request):
             date_only = date_time.date().strftime('%d.%m.%Y')
             if item.status=="S" :
                 txt_status = "In sospeso"
-            elif item.status=="R" :
-                txt_status = "Rifiutato"
-            elif item.status=="A" :
-                txt_status = "Accettato"
+            elif item.status=="C" :
+                txt_status = "Completato"
             order_info = {
                 'status_order': txt_status,
                 'order_id': item.id,
@@ -692,9 +737,173 @@ def filter_orders_by_status(request):
 
         return JsonResponse(orders_data, safe=False)
 
-    return render(request, 'homepage.html')
+    return render(request, 'client/homepage_client.html')
 
 
+def get_store_data_for_prov(category_name):
+    store_data = []
+    username_provider = settings.GLOBAL_VARIABLE
+    provider = Providers.objects.get(username=username_provider)
+
+    try:
+        category = Categories.objects.get(name=category_name)
+    except Categories.DoesNotExist:
+        # Gestisci il caso in cui la categoria non esista
+        return store_data
+
+    subcategories = Subcategories.objects.filter(category=category)
+    for subcategory in subcategories:
+        stores = Store.objects.filter(subcategory=subcategory, provider=provider)
+
+        for store in stores:
+            measure_unit = store.measure_units.abbreviation
+            subcategory_name = subcategory.name  # Accedi direttamente al nome della sottocategoria
+            price = store.price_product
+            description = store.desc_prod
+            if store.discount is None:
+                discount = ""
+            else:
+                discount = f"{store.discount}%"
+            av_quant = store.available_quantity
+            id_store = store.id
+            store_data.append({
+                'sottocategoria_nome': subcategory_name,
+                'prezzo': price,
+                'descrizione': description,
+                'sconto': discount,
+                'quantita_disponibile': f"{av_quant} {measure_unit}",
+                'id_store': id_store,
+            })
+
+    return store_data
+
+
+def get_store_data_for_single_cat_for_prov(request):
+    if request.method == 'GET':
+        category_name = request.GET.get('category', '')
+
+        username_provider = settings.GLOBAL_VARIABLE
+        provider = Providers.objects.get(username=username_provider)
+        store_data = []
+
+        try:
+            category = Categories.objects.get(name=category_name)
+        except Categories.DoesNotExist:
+            # Gestisci il caso in cui la categoria non esista
+            return JsonResponse(store_data, safe=False)
+
+        subcategories = Subcategories.objects.filter(category=category)
+        for subcategory in subcategories:
+            stores = Store.objects.filter(subcategory=subcategory, provider=provider)
+
+            for store in stores:
+                measure_unit = store.measure_units.abbreviation
+                subcategory_name = subcategory.name  # Accedi direttamente al nome della sottocategoria
+                price = store.price_product
+                description = store.desc_prod
+                if store.discount is None:
+                    discount = ""
+                else:
+                    discount = f"{store.discount}%"
+                av_quant = store.available_quantity
+                id_store = store.id
+                store_data.append({
+                    'sottocategoria_nome': subcategory_name,
+                    'prezzo': price,
+                    'descrizione': description,
+                    'sconto': discount,
+                    'quantita_disponibile': f"{av_quant} {measure_unit}",
+                    'id_store': id_store,
+                })
+
+        return JsonResponse(store_data, safe=False)
+
+
+def get_store_data_for_single_subcat_for_prov(request):
+    if request.method == 'GET':
+        subcategory_id = request.GET.get('subcategory_id', '')
+        username_provider = settings.GLOBAL_VARIABLE
+        provider = Providers.objects.get(username=username_provider)
+        # Inizializza una query di filtro per il modello Store
+        filter_query = Q()
+
+        # Aggiungi la clausola di filtro per la sottocategoria, se specificata
+        if subcategory_id:
+            filter_query &= Q(subcategory_id=subcategory_id, provider=provider)
+
+        # Esegue la query per ottenere i negozi filtrati
+        stores = Store.objects.filter(filter_query)
+
+        store_data = []
+
+        for store in stores:
+            measure_unit = store.measure_units.abbreviation
+            subcategory_name = store.subcategory.name
+            price = store.price_product
+            description = store.desc_prod
+            av_quant = store.available_quantity
+            discount = f"{store.discount}%" if store.discount else ""  # Gestisci il caso in cui lo sconto sia None
+            id_store = store.id
+
+            # Aggiungi i dettagli del negozio alla lista dei dati del negozio
+            store_data.append({
+                'sottocategoria_nome': subcategory_name,
+                'prezzo': price,
+                'descrizione': description,
+                'sconto': discount,
+                'quantita_disponibile': f"{av_quant} {measure_unit}",
+                'id_store': id_store,
+            })
+
+    return JsonResponse(store_data, safe=False)
+
+
+def search_product_for_prov(request):
+    if request.method == 'POST':
+        options_data_cat = []
+        username_provider = settings.GLOBAL_VARIABLE
+        provider = Providers.objects.get(username=username_provider)
+        context = {}
+        desc_prod_insert = request.POST.get('search', '')
+        if desc_prod_insert == "":
+            context['show_options'] = True
+            return homepage_provider(request, context)
+
+        similar_store = Store.objects.filter(desc_prod__icontains=desc_prod_insert, provider=provider)
+        if similar_store.count() == 0:
+            context['show_options'] = True
+            return homepage_provider(request, "Non ci sono prodotti con descrizione simile a quella cercata")
+        context['show_options'] = False  # Se il messaggio è "Password Corretta", mostra il form di aggiornamento
+        context['show_text'] = False
+        # Costruisci una lista dei dati del negozio
+        store_data = []
+        for store in similar_store:
+            subcategory_name = store.subcategory.name
+            price = store.price_product
+            description = store.desc_prod
+            discount = "" if store.discount is None else f"{store.discount}%"
+            av_quant = store.available_quantity
+            id_store = store.id
+            store_data.append({
+                'sottocategoria_nome': subcategory_name,
+                'prezzo': price,
+                'descrizione': description,
+                'sconto': discount,
+                'quantita_disponibile': f"{av_quant} {store.measure_units.abbreviation}",
+                'id_store': id_store,
+            })
+
+        options_data_cat.append({
+            'store_data': store_data
+        })
+
+        context = {
+            'options_data_cat': options_data_cat,
+        }
+
+        return render(request, 'provider/homepage_provider.html', context)
+
+    return render(request, 'provider/homepage_provider.html')
 
 
 

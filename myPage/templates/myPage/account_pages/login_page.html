@@ -29,6 +29,9 @@
         a:hover {
             color:red;
         }
+        label {
+            display: inline-flex;
+        }
     </style>
     <script>
         function setFormAction(event, actionUrl) {
@@ -44,6 +47,16 @@
     <form name="login" method="post">
         {% csrf_token %}
         <h1>INSERISCI I TUOI DATI</h1>
+        <p>Come vuoi accedere</p>
+        <label>
+            <input type="radio" name="user_type" value="F" required>
+            Fornitore
+        </label>
+        <label>
+            <input type="radio" name="user_type" value="C">
+            Cliente
+        </label>
+        <br>
         USERNAME <input type="text" name="username" placeholder="username..." required>
         PASSWORD <input type="password" name="psw" id="psw" placeholder="password..." required><input type="button" id="mostra_nascondi_psw" value="Mostra Password" onclick="showHidePsw('psw', 'mostra_nascondi_psw')">
         <div id="btn">

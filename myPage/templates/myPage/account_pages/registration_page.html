@@ -75,6 +75,16 @@
         {% csrf_token %}
         <h1>INSERISCI I TUOI DATI</h1>
         <div id="datas">
+            <p>Scegli il tuo tipo di utente</p>
+            <label>
+                <input type="radio" name="user_type" value="F" required>
+                Fornitore
+            </label>
+            <br>
+            <label>
+                <input type="radio" name="user_type" value="C">
+                Cliente
+            </label>
             <p><span class="txt">EMAIL</span> <input type="text" name="email" placeholder="prova@email.dominio" required pattern="[^@]+@[^@]+\.[a-zA-Z]{2,}" title="Per favore, inserisci un indirizzo email valido."></p>
             <p><span class="txt">USERNAME</span> <input type="text" name="username" placeholder="username..." required></p>
             <p><span class="txt">PASSWORD</span><input type="password" name="psw" id="psw" placeholder="password..." oninput="control_psw(); compare_psw()" required><input type="button" id="mostra_nascondi_psw" value="Mostra Password" onclick="showHidePsw('psw', 'mostra_nascondi_psw')">
