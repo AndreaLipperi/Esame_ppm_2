@@ -60,7 +60,7 @@
         <p><span class="txt">CONFERMA<br> PASSWORD </span><input type="password" id="conf_psw" placeholder="conferma password..." oninput="compare_psw()" required><input type="button" id="mostra_nascondi_conf_psw" value="Mostra Password" onclick="showHidePsw('conf_psw', 'mostra_nascondi_conf_psw')"><div id="controllo_conf_psw"></div></p>
         <div class="btn">
             <input type="submit" id="invia_btn" value="INVIA" disabled>
-            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage' %}')">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_client' %}')">
         </div>
     </form>
 
@@ -79,7 +79,7 @@
         {% endfor %}
         <div class="btn">
             <input type="submit" id="aggiorna_btn" value="AGGIORNA">
-            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage' %}')">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_client' %}')">
         </div>
     </form>
     <script>
