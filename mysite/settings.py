@@ -87,8 +87,8 @@ else:
 # Rimuovi la configurazione di un secondo database se non necessaria
 # DATABASE_ROUTERS = ['mysite.routers.IngrossoRouter']
 
-GLOBAL_VARIABLE = ''  # Variabile globale che conterrà l'username dell'utente che userà il programma
-
+GLOBAL_VARIABLE = ''  #Variabile globale che conterrà l'username dell'utente che userà il programma
+GLOBAL_TYPE_USER = ''  #variabile globale che contiene il tipo dell'utente che sta usando il programma
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 

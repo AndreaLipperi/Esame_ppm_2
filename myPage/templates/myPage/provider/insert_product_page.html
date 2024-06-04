@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Create your account</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #choices {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2%;
+        }
+        input {
+            font-size: 0.6em;
+            margin: 1%;
+        }
+        #datas {
+            width: 100%;
+            flex-direction: row;
+            align-items: center;
+        }
+        input[type="text"], input[type="number"] {
+            margin-left: 30%;
+            margin-top: -2.5%;
+            font-size: 0.6em;
+            display: block; /* Imposta tutti gli input di tipo testo e password su display block */
+            width: 20%; /* Aggiungi questa regola per impostare la larghezza degli input */
+        }
+        #btn {
+            width: 40%;
+            flex-direction: row;
+            align-items: center;
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 2em;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: normal;
+            }
+            #datas {
+                margin-left: 2%;
+                width: 50%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            input[type="text"], input[type="password"] {
+                margin-left: 3%;
+                margin-top: 1%;
+                font-size: 0.6em;
+                display: block; /* Imposta tutti gli input di tipo testo e password su display block */
+                width: 100%; /* Aggiungi questa regola per impostare la larghezza degli input */
+            }
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<form name="registration_form" action="{% url 'insert_product' %}" method="POST">
+    {% csrf_token %}
+    <h1>INSERISCI I DATI</h1>
+    <div id="datas">
+        <div id="choices">
+            <label for="selezione">Scegli una categoria specifica:</label>
+            <select id="selezione" name="selezione">
+                <option value="">Seleziona</option>
+                {% for option_data_cat in options_data_cat %}
+                    <option value="{{ option_data_cat.name }}">{{ option_data_cat.name }}</option>
+                {% endfor %}
+            </select>
+            <label for="subcategories">Scegli una sottocategoria:</label>
+            <select id="subcategories" name="subcategories" required>
+                <option value="">Seleziona</option>
+            </select>
+        </div>
+        Quantità disponibile <input type="number"  id="quantity" name="quantity" min="1" step="1" value="0" required><br>
+        <label for="unita_misura">Scegli una unità di misura:</label>
+        <select id="unita_misura" name="unita_misura" required>
+            <option value="">Seleziona</option>
+            {% for option_data_meausure in options_data_meausure %}
+                <option value="{{ option_data_meausure.id }}">{{ option_data_meausure.name }}</option>
+            {% endfor %}
+        </select><br><br><br>
+        Prezzo in € <input type="number"  id="price" name="price" min="0.01" step="0.01" value="0.00" required><br>
+        Descrizione<input type="text" name="desc" value="" required><br>
+        Sconto in %<input type="text" name="discount" id="discount" value=""><br>
+    </div>
+    <div id="btn">
+        <input type="submit" id="crea_btn" value="INSERISCI">
+        <input type="reset" id="reset_btn" value="CANCELLA">
+        <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_provider' %}')">
+    </div>
+</form>
+<script>
+    function setFormAction(event, actionUrl) {
+        event.preventDefault(); // Impedisce il comportamento di submit di default
+        var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+        form.action = actionUrl; // Imposta dinamicamente l'attributo action
+        form.submit(); // Invia il form
+    }
+    $(document).ready(function() {
+        $('#selezione').change(function() {
+            var categoryName = $(this).val();
+            if ($(this).val() === '') {
+                // Reindirizza alla homepage
+                window.location.href = '/insert_product_page/'; // Assicurati di sostituire '/' con l'URL effettivo della tua homepage
+            }
+            $.ajax({
+                url: '/get_subcategories/',  // Assicurati che questo URL sia corretto
+                data: {
+                    'category': categoryName
+                },
+                success: function(data) {
+                    var $subselect = $('#subcategories');
+                    $subselect.empty();
+                    $subselect.append('<option value="">Seleziona</option>');
+                    $.each(data, function(index, suboption) {
+                        $subselect.append('<option value="' + suboption.id + '">' + suboption.name + '</option>');
+                    });
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

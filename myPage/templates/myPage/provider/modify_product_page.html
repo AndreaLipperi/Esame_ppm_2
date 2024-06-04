@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MODIFY YOUR PRODUCT</title>
+    <style>
+        body {
+            background-color: #ccc;
+        }
+        form {
+            font-size: 2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        input {
+            margin: 1%;
+            font-size: 0.6em;
+        }
+        h1 {
+            font-size: 1.5em;
+        }
+        input[type="password"]{
+            font-size: 0.6em; /* Aggiungi questa regola per impostare la larghezza degli input */
+        }
+        
+        #store_id {
+            display: none;
+        }
+        
+        .btn {
+            display: inline-flex;
+        }
+        @media (max-width: 1060px){
+            form {
+                font-size: 2em;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: normal;
+            }
+
+            input[type="password"] {
+                margin-left: 3%;
+                margin-top: 1%;
+                font-size: 0.6em;
+                display: block; /* Imposta tutti gli input di tipo testo e password su display block */
+                width: 100%; /* Aggiungi questa regola per impostare la larghezza degli input */
+            }
+        }
+    </style>
+    <!-- Includi jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function setFormAction(event, actionUrl) {
+            event.preventDefault(); // Impedisce il comportamento di submit di default
+            var form = event.target.form; // Ottiene il form relativo al pulsante cliccato
+            form.action = actionUrl; // Imposta dinamicamente l'attributo action
+            form.submit(); // Invia il form
+        }
+    </script>    
+</head>
+<body>
+    <form name="modify_product" action="{% url 'update_datas_product' %}" method="post">
+        {% csrf_token %}
+        <h1>MODIFICA I DATI</h1>
+        {% for store_item in store_data %}
+            Quantità disponibile in {{ store_item.unita_misura }} <input type="number"  id="quantity" name="quantity" min="1" step="1" value="{{ store_item.quantita_disponibile }}" required><br>
+            Prezzo <input type="number"  id="price" name="price" min="0.01" step="0.01" value="{{ store_item.prezzo }}" required>
+            Descrizione<input type="text" name="desc" value="{{ store_item.descrizione }}" required>
+            Sconto in %<input type="text" name="discount" id="discount" value="{{ store_item.sconto }}" required>
+            <input type="text" id="store_id" name="store_id" value="{{ store_item.id_store }}" required>
+        {% endfor %}
+        <div class="btn">
+            <input type="submit" id="aggiorna_btn" value="AGGIORNA">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_provider' %}')">
+        </div>
+    </form>
+</body>
+</html>

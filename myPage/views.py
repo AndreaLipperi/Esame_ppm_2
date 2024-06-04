@@ -34,12 +34,14 @@ def modify_data_account(request, message=None):
         return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
 
     username_user = settings.GLOBAL_VARIABLE
+    type_user = settings.GLOBAL_TYPE_USER
 
     account_data = get_data_account(username_user)
 
     context = {
         'account_data': account_data,
         'message': message,
+        'type_user': type_user,
         'show_update_form': False,  # Imposta inizialmente il flag per mostrare il form di aggiornamento a False
         'show_confirm_form': True   # Imposta inizialmente il flag per mostrare il form di conferma a True
     }
@@ -118,8 +120,10 @@ def delete_acc_page(request):
     if settings.GLOBAL_VARIABLE == "":
         return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
     username = settings.GLOBAL_VARIABLE
+    type = settings.GLOBAL_TYPE_USER
     context = {
         'username': username,
+        'type': type,
     }
     return render(request, 'account_pages/delete_account.html', context)
 
@@ -136,6 +140,19 @@ def cart(request, message=None):
     if message:
         context['message'] = message
     return render(request, 'client/cart_page.html', context)
+
+
+def modify_data_store(request, store_id):
+    if settings.GLOBAL_VARIABLE == "":
+        return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
+
+    store_data = get_data_product(store_id)
+
+    context = {
+        'store_data': store_data,
+    }
+
+    return render(request, 'provider/modify_product_page.html', context)
 
 
 def orders(request, message=None):
@@ -185,6 +202,7 @@ def controlla_dati(request):
             else:
                 user = Providers.objects.get(username=username_user)
             if check_password(psw_user, user.password):
+                settings.GLOBAL_TYPE_USER = type
                 settings.GLOBAL_VARIABLE = username_user
                 if type == "C":
                     return JsonResponse({"successo": True, "redirect_url": "/homepage_client/"})
@@ -478,7 +496,7 @@ def do_order(request):
         order = Orders.objects.create(user=user, status="S", date_order=timezone.now().timestamp())
 
         for item, quantity in zip(cart_items, quantities):
-            order_detail = OrderDetails(quantity=quantity, store=item.store, order=order)
+            order_detail = OrderDetails(quantity=quantity, store=item.store, order=order, status="S")
             order_detail.save()
             item.delete()
 
@@ -576,10 +594,14 @@ def cancel_order(request):
 def control_psw(request):
     if request.method == 'POST':
         username = settings.GLOBAL_VARIABLE
+        type = settings.GLOBAL_TYPE_USER
         psw = request.POST.get('psw', '')
 
         try:
-            user = Users.objects.get(username=username)
+            if type=="C":
+                user = Users.objects.get(username=username)
+            else:
+                user = Providers.objects.get(username=username)
             if check_password(psw, user.password):
                 return modify_data_account(request, 'Password Corretta')
             else:
@@ -592,9 +614,13 @@ def control_psw(request):
 
 def get_data_account(username_user):
     account_data = []
-    user = get_object_or_404(Users, username=username_user)
-
-    user_items = Users.objects.filter(pk=user.id)
+    type_user = settings.GLOBAL_TYPE_USER
+    if type_user=="C":
+        user = get_object_or_404(Users, username=username_user)
+        user_items = Users.objects.filter(pk=user.id)
+    else:
+        user = get_object_or_404(Providers, username=username_user)
+        user_items = Providers.objects.filter(pk=user.id)
 
     for item in user_items:
         user_info = {
@@ -632,14 +658,23 @@ def update_datas_account(request):
 def delete_account(request):
     if request.method == 'POST':
         username = settings.GLOBAL_VARIABLE
+        type = settings.GLOBAL_TYPE_USER
         psw = request.POST.get('psw', '')
 
         try:
-            user = Users.objects.get(username=username)
-            orders_items = Orders.objects.filter(user=user)
-            for item in orders_items:
-                if item.status=="S" :
-                    return homepage_client(request, "Impossibile cancellare il tuo account, è presente un ordine in sospeso")
+            if type=="C":
+                user = Users.objects.get(username=username)
+                orders_items = Orders.objects.filter(user=user)
+                for item in orders_items:
+                    if item.status=="S" :
+                        return homepage_client(request, "Impossibile cancellare il tuo account, è presente un ordine in sospeso")
+            else:
+                user = Providers.objects.get(username=username)
+                store_items = Store.objects.filter(provider=user)
+                for item in store_items:
+                    if OrderDetails.objects.filter(store=item, status="S"):
+                        return homepage_provider(request, "Impossibile cancellare il tuo account, un tuo prodotto è presente in un ordine in sospeso, completa gli ordini prima di cancellare il tuo account")
+                    delete_product_from_store(request, item.id)
             if check_password(psw, user.password):
                 settings.GLOBAL_VARIABLE = ""
                 user.delete()
@@ -904,6 +939,116 @@ def search_product_for_prov(request):
         return render(request, 'provider/homepage_provider.html', context)
 
     return render(request, 'provider/homepage_provider.html')
+
+
+def delete_product_from_store(request, store_id):
+    store = Store.objects.get(pk=store_id)
+    order_details = OrderDetails.objects.filter(store=store)
+    cart = Cart.objects.filter(store=store)
+
+    cart.delete()
+    order_details.delete()
+    store.delete()
+
+    return homepage_provider(request, 'Prodotto eliminato con successo')
+
+
+def get_data_product(store_id):
+    store_data = []
+
+    store_items = Store.objects.filter(pk=store_id)
+
+    for item in store_items:
+        if item.discount is None:
+            sconto = 0
+        else:
+            sconto = item.discount
+        store_info = {
+            'quantita_disponibile': item.available_quantity,
+            'prezzo': item.price_product,
+            'descrizione': item.desc_prod,
+            'unita_misura': item.measure_units.name,
+            'sconto': sconto,
+            'id_store': item.id,
+        }
+        store_data.append(store_info)
+
+    return store_data
+
+
+def update_datas_product(request):
+    if request.method == 'POST':
+        id_store = request.POST.get('store_id', '')
+        available_quantity = request.POST.get('quantity', '')
+        price_product = request.POST.get('price', '')
+        desc_product = request.POST.get('desc', '')
+        discount = request.POST.get('discount', '')
+
+        # Ottieni l'utente attuale per escluderlo dalla query
+        product = Store.objects.get(pk=id_store)
+
+        product.available_quantity = available_quantity
+        product.price_product = price_product
+        product.desc_prod = desc_product
+        if discount != "0":
+            product.discount = discount
+        product.save()
+        return homepage_provider(request, "Dati modificati con successo")
+
+
+def insert_product_page(request):
+    if settings.GLOBAL_VARIABLE == "":
+        return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
+    categories = Categories.objects.all()
+    options_data_cat = []
+
+    for category in categories:
+        options_data_cat.append({
+            'id': category.id,
+            'name': category.name,
+        })
+
+    measure_units = Measure_units.objects.all()
+    options_data_meausure = []
+
+    for measure_unit in measure_units:
+        options_data_meausure.append({
+            'id': measure_unit.id,
+            'name': measure_unit.name,
+        })
+
+    context = {
+        'options_data_cat': options_data_cat,
+        'options_data_meausure': options_data_meausure,
+        'show_options': True,
+    }
+    return render(request, 'provider/insert_product_page.html', context)
+
+
+def insert_product(request):
+    username_provider = settings.GLOBAL_VARIABLE
+    provider = Providers.objects.get(username=username_provider)
+    subcategory_id = request.POST.get('subcategories', '')
+    subcategories = Subcategories.objects.get(pk=subcategory_id)
+    measure_unit_id = request.POST.get('unita_misura', '')
+    measure_units = Measure_units.objects.get(pk=measure_unit_id)
+    available_quantity = request.POST.get('quantity', '')
+    price_product = request.POST.get('price', '')
+    desc_product = request.POST.get('desc', '')
+    discount = request.POST.get('discount', '')
+    if discount=="":
+        discount = None
+
+    Store.objects.create(provider=provider, subcategory=subcategories, measure_units=measure_units, available_quantity=available_quantity, price_product=price_product, desc_prod=desc_product, discount=discount)
+
+    return homepage_provider(request, 'Prodotto inserito nel magazzino')
+
+
+
+
+
+
+
 
 
 

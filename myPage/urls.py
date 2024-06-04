@@ -40,4 +40,10 @@ urlpatterns = [
     path('get_store_data_for_single_cat_for_prov/', views.get_store_data_for_single_cat_for_prov, name='get_store_data_for_single_cat_for_prov'),
     path('get_store_data_for_single_subcat_for_prov/', views.get_store_data_for_single_subcat_for_prov, name='get_store_data_for_single_subcat_for_prov'),
     path('search_product_for_prov/', views.search_product_for_prov, name='search_product_for_prov'),
+    path('delete_product_from_store/<int:store_id>/', views.delete_product_from_store, name='delete_product_from_store'),
+    path('modify_data_store/<int:store_id>/', views.modify_data_store, name='modify_data_store'),
+    path('get_data_product', views.get_data_product, name='get_data_product'),
+    path('update_datas_product', views.update_datas_product, name='update_datas_product'),
+    path('insert_product_page/', views.insert_product_page, name='insert_product_page'),
+    path('insert_product', views.insert_product, name='insert_product')
 ]

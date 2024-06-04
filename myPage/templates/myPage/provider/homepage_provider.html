@@ -139,10 +139,10 @@
         <input type="submit" id="logout" value="ESCI" onclick="setFormAction(event, '{% url 'index' %}')">
     </div>
     <div id="sottomenu">
-        <a href="">Aggiungi prodotti ></a> <br>
+        <a href="{% url 'insert_product_page' %}">Aggiungi prodotti ></a> <br>
         <a href="">Ordini ricevuti ></a> <br>
-        <a href="">Il mio Account ></a><br>
-        <a href="">Cancella Account ></a>
+        <a href="{% url 'modify_data_account' %}">Il mio Account ></a><br>
+        <a href="{% url 'delete_acc_page' %}">Cancella Account ></a>
     </div>
     <h1>ECCO TUTTI I TUOI PRODOTTI</h1>
     <div id="options" {% if not show_options %} style="display: none;" {% endif %}>
@@ -163,7 +163,7 @@
     </div>
     <h3>Oppure cercare direttamente per descrizione</h3>
     una volta cercato, clicca nuovamente su cerca per ricaricare la pagina
-    <input type="text" id="search" name="search" placeholder="Ricerca..."><input type="submit" id="search_btn" value="Cerca &#x1F50D;" onclick="setFormAction(event, '{% url 'search_product_for_prov' %}')">
+    <input type="search" id="search" name="search" placeholder="Ricerca..."><input type="submit" id="search_btn" value="Cerca &#x1F50D;" onclick="setFormAction(event, '{% url 'search_product_for_prov' %}')">
     <div id="datas">
         {% for option_data_cat in options_data_cat %}
             <p id="cat_prod" {% if not show_options %} style="display: none;" {% endif %}>Categoria prodotti: <b>{{ option_data_cat.name }}</b></p>
@@ -183,8 +183,8 @@
                     <div class="grid_item_dati">{{ store_item.descrizione }}</div>
                     <div class="grid_item_dati">{{ store_item.quantita_disponibile }}</div>
                     <div class="grid_item_dati">{{ store_item.sconto }}</div>
-                    <div class="grid_item_dati"><a href="">Cancella prodotto</a></div>
-                    <div class="grid_item_dati"><a href="">Modifica prodotto</a></div>
+                    <div class="grid_item_dati"><a href="{% url 'delete_product_from_store' store_id=store_item.id_store %}">Cancella prodotto</a></div>
+                    <div class="grid_item_dati"><a href="{% url 'modify_data_store' store_id=store_item.id_store %}">Modifica prodotto</a></div>
                 {% endfor %}
             </div>
         {% endfor %}
@@ -251,8 +251,8 @@
                                 <div class="grid_item_dati">${item.descrizione}</div>
                                 <div class="grid_item_dati">${item.quantita_disponibile}</div>
                                 <div class="grid_item_dati">${item.sconto}</div>
-                                <div class="grid_item_dati"><a href="">Cancella Prodotto</a></div>
-                                <div class="grid_item_dati"><a href="">Modifica Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/delete_product_from_store/${item.id_store}">Cancella Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/modify_data_store/${item.id_store}">Modifica Prodotto</a></div>
                             </div>
                         `);
                         });
@@ -303,8 +303,8 @@
                                 <div class="grid_item_dati">${item.descrizione}</div>
                                 <div class="grid_item_dati">${item.quantita_disponibile}</div>
                                 <div class="grid_item_dati">${item.sconto}</div>
-                                <div class="grid_item_dati"><a href="">Cancella Prodotto</a></div>
-                                <div class="grid_item_dati"><a href="">Modifica Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/delete_product_from_store/${item.id_store}">Cancella Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/modify_data_store/${item.id_store}">Modifica Prodotto</a></div>
                             </div>
                         `);
                         });
@@ -349,8 +349,8 @@
                                 <div class="grid_item_dati">${item.descrizione}</div>
                                 <div class="grid_item_dati">${item.quantita_disponibile}</div>
                                 <div class="grid_item_dati">${item.sconto}</div>
-                                <div class="grid_item_dati"><a href="">Cancella Prodotto</a></div>
-                                <div class="grid_item_dati"><a href="">Modifica Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/delete_product_from_store/${item.id_store}">Cancella Prodotto</a></div>
+                                <div class="grid_item_dati"><a href="/modify_data_store/${item.id_store}">Modifica Prodotto</a></div>
                             </div>
                         `);
                         });
