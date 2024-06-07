@@ -238,7 +238,7 @@ def controlla_username(request):
     return JsonResponse({"successo": False, "messaggio": "Metodo non supportato"})
 
 
-def inserisci_dati(request):
+def do_registation(request):
     if request.method == 'POST':
         type = request.POST.get('user_type')
         email = request.POST['email']
@@ -1042,6 +1042,56 @@ def insert_product(request):
     Store.objects.create(provider=provider, subcategory=subcategories, measure_units=measure_units, available_quantity=available_quantity, price_product=price_product, desc_prod=desc_product, discount=discount)
 
     return homepage_provider(request, 'Prodotto inserito nel magazzino')
+
+
+def orders_history_provider(request, message=None):
+    if not settings.GLOBAL_VARIABLE:
+        return render(request, 'account_pages/index.html', {'message': 'Devi accedere per arrivare a questa pagina'})
+
+    orders_data = get_orders_data_provider(settings.GLOBAL_VARIABLE)
+
+    context = {
+        'orders_data': orders_data  # Assicurati che qui stai passando i dati del carrello senza incorrere in sovrascritture accidentali
+    }
+    if message:
+        context['message'] = message
+    return render(request, 'provider/orders_page_provider.html', context)
+
+
+def get_orders_data_provider(username):
+    orders_data = []
+
+    if not username:
+        return JsonResponse({'error': 'Username is required'}, status=400)
+
+    provider = get_object_or_404(Providers, username=username)
+
+    store = Store.objects.filter(provider=provider)
+
+    for s in store:
+
+        order_details = OrderDetails.objects.filter(store=s)
+
+        for order_detail in order_details:
+            orders_items = Orders.objects.filter(pk=order_detail.order.id)
+
+            for item in orders_items:
+                timestamp = float(item.date_order)
+                date_time = datetime.fromtimestamp(timestamp)
+                # Ottieni solo la parte della data
+                date_only = date_time.date().strftime('%d.%m.%Y')
+                if item.status=="S" :
+                    txt_status = "In sospeso"
+                elif item.status=="C" :
+                    txt_status = "Completato"
+                order_info = {
+                    'status_order': txt_status,
+                    'order_id': item.id,
+                    'data_order': date_only,
+                }
+                orders_data.append(order_info)
+
+    return orders_data
 
 
 

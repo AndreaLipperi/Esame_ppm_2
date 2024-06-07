@@ -8,7 +8,7 @@ urlpatterns = [
     path('homepage_client/', views.homepage_client, name='homepage_client'),  # URL per il login
     path('controlla-dati/', views.controlla_dati, name='controlla_dati'),
     path('controlla-username/', views.controlla_username, name='controlla_username'),
-    path('inserisci/', views.inserisci_dati, name='inserisci_dati'),
+    path('do_registation/', views.do_registation, name='do_registation'),
     path('forgot_psw/', views.forgot_psw, name='forgot_psw'),
     path('update_psw_page/', views.update_psw_page, name='update_psw_page'),
     path('update_psw/', views.update_psw, name='update_psw'),
@@ -45,5 +45,7 @@ urlpatterns = [
     path('get_data_product', views.get_data_product, name='get_data_product'),
     path('update_datas_product', views.update_datas_product, name='update_datas_product'),
     path('insert_product_page/', views.insert_product_page, name='insert_product_page'),
-    path('insert_product', views.insert_product, name='insert_product')
+    path('insert_product', views.insert_product, name='insert_product'),
+    path('orders_history_provider', views.orders_history_provider, name='orders_history_provider'),
+    path('get_orders_data_provider', views.get_orders_data_provider, name='get_orders_data_provider'),
 ]

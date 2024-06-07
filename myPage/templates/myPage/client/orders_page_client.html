@@ -146,35 +146,6 @@
                 });
             });
         });
-        // Funzione per controllare il valore degli input di tipo "number"
-        function checkQuantityInputs() {
-            // Seleziona tutti gli input di tipo "number"
-            var quantityInputs = document.querySelectorAll('input[type="number"]');
-            var disableButton = false;
-
-            // Itera su tutti gli input
-            quantityInputs.forEach(function(input) {
-                // Se almeno uno ha un valore di 1, disabilita il pulsante "INVIA ORDINE"
-                if (input.value == 0) {
-                    disableButton = true;
-                    return; // Esci dalla funzione
-                }
-            });
-
-            // Disabilita/abilita il pulsante "INVIA ORDINE" in base al valore di disableButton
-            document.getElementById('do_order').disabled = disableButton;
-        }
-
-        // Aggiungi un listener per l'evento 'input' a tutti gli input di tipo "number"
-        document.addEventListener('DOMContentLoaded', function() {
-            var quantityInputs = document.querySelectorAll('input[type="number"]');
-            quantityInputs.forEach(function(input) {
-                input.addEventListener('input', checkQuantityInputs);
-            });
-
-            // Esegui il controllo iniziale
-            checkQuantityInputs();
-        });
     </script>
 </body>
 </html>
