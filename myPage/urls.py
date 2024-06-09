@@ -48,4 +48,7 @@ urlpatterns = [
     path('insert_product', views.insert_product, name='insert_product'),
     path('orders_history_provider', views.orders_history_provider, name='orders_history_provider'),
     path('get_orders_data_provider', views.get_orders_data_provider, name='get_orders_data_provider'),
+    path('order_details_provider/<int:order_id>', views.order_details_provider, name='order_details_provider'),
+    path('accept_deny_product/<int:order_detail_id>/<int:control>', views.accept_deny_product, name="accept_deny_product"),
+    path('accept_deny_order/<int:control>', views.accept_deny_order, name="accept_deny_order"),
 ]

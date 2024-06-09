@@ -22,13 +22,13 @@
         }
         .grid_titoli {
             display: grid;
-            grid-template-columns: repeat(6, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
             font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
             grid-gap: 10px; /* Spazio tra le celle della griglia */
         }
         .grid_dati {
             display: grid;
-            grid-template-columns: repeat(6, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-template-columns: repeat(7, 1fr); /* Stessa disposizione delle colonne per i titoli */
             grid-gap: 10px; /* Spazio tra le celle della griglia */
         }
 
@@ -38,12 +38,9 @@
             justify-content: center;
             align-items: center;
         }
-        #back_btn, #cancel_order {
+        #back_btn, #accept_order, #deny_order {
             margin: 2%;
             font-size: 1em;
-        }
-        #cancel_order {
-            display: none;
         }
         .grid_item_titoli {
             padding: 5px; /* Padding per separare i titoli */
@@ -106,8 +103,9 @@
             <div class="grid_item_titoli">Prezzo | Prezzo <br>Totale | scontato</div>
             <div class="grid_item_titoli">Prodotto</div>
             <div class="grid_item_titoli">Sconto</div>
-            <div class="grid_item_titoli">Fornitore</div>
             <div class="grid_item_titoli">Status</div>
+            <div class="grid_item_titoli"></div>
+            <div class="grid_item_titoli"></div>
         </div>
         <div class="grid_dati">
             {% for order_details_item in orders_details_data %}
@@ -122,15 +120,17 @@
                 </div>
                 <div class="grid_item_dati">{{ order_details_item.descrizione }}</div>
                 <div class="grid_item_dati">{{ order_details_item.sconto }}</div>
-                <div class="grid_item_dati">{{ order_details_item.fornitore_nome }}</div>
-                <div class="grid_item_dati">{{ order_details_item.status }}</div>
-                <div class="grid_item_dati" id="other_datas"><input type="text" id="status_order_txt" value="{{ order_details_item.status_order }}"><input type="text" name="order_id" value="{{ order_details_item.order_id }}"></div>
+                <div class="grid_item_dati"><span class="status">{{ order_details_item.status }}</span></div>
+                <div class="grid_item_dati"><a class="accept_link" href="{% url 'accept_deny_product' order_detail_id=order_details_item.order_details_id control=1 %}">Accetta ordine prodotto</a></div>
+                <div class="grid_item_dati"><a class="deny_link" href="{% url 'accept_deny_product' order_detail_id=order_details_item.order_details_id control=2 %}">Rifiuta ordine prodotto</a></div>
+                <div class="grid_item_dati" id="other_datas"><input type="text" name="order_id" value="{{ order_details_item.order_id }}"></div>
             {% endfor %}
         </div>
         COSTO TOTALE ORDINE: <span id="total_cost"></span>
         <div id="btn">
-            <input type="submit" id="cancel_order" value="ANNULLA ORDINE" onclick="setFormAction(event, '{% url 'cancel_order' %}')" title="Verranno annullati gli ordini solo dei prodotti ancora in sospeso">
-            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'orders' %}')">
+            <input type="submit" id="accept_order" value="ACCETTA ORDINE" onclick="setFormAction(event, '{% url 'accept_deny_order' control=1 %}')" title="Da questo bottone renderai accettati tutti i prodotti ancora in sospeso">
+            <input type="submit" id="deny_order" value="RIFIUTA ORDINE" onclick="setFormAction(event, '{% url 'accept_deny_order' control=2 %}')" title="Da questo bottone renderai rifiutati tutti i prodotti ancora in sospeso">
+            <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'orders_history_provider' %}')">
         </div>
         {% if message %}
             <script>
@@ -139,22 +139,42 @@
         {% endif %}
     </div>
 </form>
-    <script>
-        // Funzione per controllare il valore degli input di tipo "number"
-        function showCancelBtn() {
-            var status = document.getElementById("status_order_txt");
-            var cancel_btn = document.getElementById("cancel_order");
-            if (status.value==="C") {
-                cancel_btn.style.display="none";
-            } else if (status.value==="S"){
-                cancel_btn.style.display="block";
+<script>
+    // Funzione per controllare il valore degli input di tipo "number"
+    function showBtn() {
+        var status = document.querySelectorAll(".status");
+        var accept_btn = document.getElementById("accept_order");
+        var deny_btn = document.getElementById("deny_order");
+        var hasStatusS = false;
+        
+        status.forEach((stat, index) => {
+            var accept_link = document.querySelectorAll(".accept_link")[index];
+            var deny_link = document.querySelectorAll(".deny_link")[index];
+            if (stat.textContent === "In sospeso") {
+                accept_link.style.display = "inline";
+                deny_link.style.display = "inline";
+            } else {
+                accept_link.style.display = "none";
+                deny_link.style.display = "none";
             }
-        }
-        document.addEventListener('DOMContentLoaded', function() {
-
-            // Esegui il controllo iniziale
-            showCancelBtn();
+            if (stat.textContent === "In sospeso") {
+                hasStatusS = true;
+            }
         });
-    </script>
+
+        if (hasStatusS) {
+            accept_btn.style.display = "block";
+            deny_btn.style.display = "block";
+        } else {
+            accept_btn.style.display = "none";
+            deny_btn.style.display = "none";
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Esegui il controllo iniziale
+        showBtn();
+    });
+</script>
 </body>
 </html>

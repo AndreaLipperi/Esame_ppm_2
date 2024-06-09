@@ -22,13 +22,13 @@
         }
         .grid_titoli {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-template-columns: repeat(4, 1fr); /* Stessa disposizione delle colonne per i titoli */
             font-weight: bold; /* Stili per rendere il testo dei titoli in grassetto */
             grid-gap: 10px; /* Spazio tra le celle della griglia */
         }
         .grid_dati {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* Stessa disposizione delle colonne per i titoli */
+            grid-template-columns: repeat(4, 1fr); /* Stessa disposizione delle colonne per i titoli */
             grid-gap: 10px; /* Spazio tra le celle della griglia */
         }
         #btn {
@@ -49,17 +49,9 @@
             padding: 5px; /* Padding per separare i dati */
             border-bottom: 1px solid #ccc; /* Aggiunge una linea inferiore per separare le righe dei dati */
         }
-        .no-orders {
-            text-align: center;
-            font-size: 1.2em;
-            color: red;
-        }
         @media (max-width: 1060px){
             form {
                 font-size: 1em;
-            }
-            #quantity {
-                width:40%;
             }
         }
     </style>
@@ -79,20 +71,22 @@
     <h1>ECCO LO STORICO DEI TUOI ORDINI RICEVUTI</h1>
     <div id="datas">
         <div class="grid_titoli">
-            <div class="grid_item_titoli">Status</div>
             <div class="grid_item_titoli">Data Ordine</div>
+            <div class="grid_item_titoli">Ricevuto da</div>
+            <div class="grid_item_titoli">Status</div>
             <div class="grid_item_titoli"></div>
         </div>
         <div class="grid_dati">
-            {% for orders_item in orders_data %}
-                <div class="grid_item_dati">{{ orders_item.status_order }}</div>
+            {% for orders_item in orders_data|dictsortreversed:"data_order" %}
                 <div class="grid_item_dati">{{ orders_item.data_order }}</div>
-                <div class="grid_item_dati"><a href="{% url 'order_details' order_id=orders_item.order_id %}">Vedi dettagli ordine</a></div>
+                <div class="grid_item_dati">{{ orders_item.customer }}</div>
+                <div class="grid_item_dati">{{ orders_item.status_order }}</div>
+                <div class="grid_item_dati"><a href="{% url 'order_details_provider' order_id=orders_item.order_id %}">Vedi dettagli ordine</a></div>
             {% endfor %}
         </div>
     </div>
     <div id="btn">
-        <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_client' %}')">
+        <input type="submit" id="back_btn" value="INDIETRO" onclick="setFormAction(event, '{% url 'homepage_provider' %}')">
     </div>
     {% if message %}
         <script>
