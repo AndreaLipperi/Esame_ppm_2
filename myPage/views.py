@@ -184,9 +184,10 @@ def order_details(request, order_id):
 
 def update_psw_page(request):
     username = request.GET.get('username')
+    type = request.GET.get('user_type')
     if username:
         # La logica per l'aggiornamento della password va qui
-        return render(request, 'account_pages/update_psw.html', {'username': username})
+        return render(request, 'account_pages/update_psw.html', {'username': username, 'user_type': type})
     else:
         return redirect('forgot_password')  # Reindirizza alla pagina di recupero password se non c'è username
 
@@ -279,7 +280,6 @@ def update_psw(request):
         username = request.POST.get('username')
         new_psw = request.POST.get('psw')
         hashed_password = make_password(new_psw)
-        print(type)
         try:
             if type == "C":
                 user_profile = get_object_or_404(Users, username=username)
