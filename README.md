@@ -2,7 +2,7 @@
 
 Questo programma ha come obbiettivo di gestire un ingrosso tra ristoranti e fornitori degli stessi, come prima cosa è possibile registrarsi tramite email username e password e scegliendo il tipo di utente, tra fornitore e cliente, col quale vogliamo caratterizzarci per usare il programma.
 
-Successivamente alla registarzione è quindi possibile accedere, con anche la possiblità di cambiare password se dimenticata tramite un link che verrà inviato alla mail con la quale ti sei registrato, e nell'accesso uno deve specificare con quale tipo di utente si cuole accedere.
+Successivamente alla registrazione è quindi possibile accedere, con anche la possiblità di cambiare password se dimenticata tramite un link che verrà inviato alla mail con la quale ti sei registrato, e nell'accesso uno deve specificare con quale tipo di utente si cuole accedere.
 
 Una volta effettuato l'acceso si aprirà una homepage diversa in base al tipo di utente.
 
