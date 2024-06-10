@@ -218,23 +218,32 @@ def controlla_dati(request):
 
 def controlla_username(request):
     if request.method == 'POST':
+        type = request.POST.get('user_type')
         username = request.POST.get('username')
-        if Users.objects.filter(username=username).exists():
-            user = Users.objects.get(username=username)
-            email = user.email
-
-            # Configura i dettagli dell'email
-            oggetto = "Cambio password"
-            messaggio = "Clicca sul link per cambiare la password: https://esame-ppm-2.vercel.app/update_psw_page/?username=" + username
-            email_from = settings.EMAIL_HOST_USER
-            recipient_list = [email]
-
-            # Invia l'email
-            send_mail(oggetto, messaggio, email_from, recipient_list)
-
-            return render(request, 'account_pages/login_page.html', {'message': 'Ti è stata inviata una mail col link per cambiare la password'})
+        if type == "C":
+            if Users.objects.filter(username=username).exists():
+                user = Users.objects.get(username=username)
+            else:
+                return render(request, 'account_pages/forgot_password.html', {'message': 'Username non trovato'})
         else:
-            return render(request, 'account_pages/forgot_password.html', {'message': 'Username non trovato'})
+            if Providers.objects.filter(username=username).exists():
+                user = Providers.objects.get(username=username)
+            else:
+                return render(request, 'account_pages/forgot_password.html', {'message': 'Username non trovato'})
+
+        email = user.email
+
+        # Configura i dettagli dell'email
+        oggetto = "Cambio password"
+        messaggio = "Clicca sul link per cambiare la password: https://esame-ppm-2.vercel.app/update_psw_page/?username=" + username
+        email_from = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+
+        # Invia l'email
+        send_mail(oggetto, messaggio, email_from, recipient_list)
+
+        return render(request, 'account_pages/login_page.html', {'message': 'Ti è stata inviata una mail col link per cambiare la password'})
+
     return JsonResponse({"successo": False, "messaggio": "Metodo non supportato"})
 
 
@@ -266,11 +275,16 @@ def do_registation(request):
 
 def update_psw(request):
     if request.method == 'POST':
+        type = request.POST.get('type')
         username = request.POST.get('username')
         new_psw = request.POST.get('psw')
         hashed_password = make_password(new_psw)
         try:
-            user_profile = get_object_or_404(Users, username=username)
+            if type=="C":
+                user_profile = get_object_or_404(Users, username=username)
+            else:
+                user_profile = get_object_or_404(Providers, username=username)
+
             user_profile.password = hashed_password
             user_profile.save()
             return render(request, 'account_pages/index.html', {'message': 'Password aggiornata con successo.'})

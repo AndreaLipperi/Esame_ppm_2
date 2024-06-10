@@ -39,7 +39,7 @@
         #controllo_psw, #controllo_conf_psw {
             font-size: 0.5em;
         }
-        #username {
+        #username, #type {
             display: none;
         }
         @media (max-width: 1060px){
@@ -71,6 +71,7 @@
 <body>
     <form name="update_password" action="{% url 'update_psw' %}" method="post">
         {% csrf_token %}
+        <input type="text" name="type" id="type" value="{{ user_type }}">
         <input type="text" name="username" id="username" value="{{ username }}">
         <h1>{{ username }} INSERISCI NUOVA PASSWORD</h1>
         <div id="datas">
