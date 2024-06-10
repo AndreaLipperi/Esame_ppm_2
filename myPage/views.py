@@ -262,7 +262,7 @@ def do_registation(request):
         try:
             hashed_password = make_password(password)
             # Creazione dell'utente
-            if type=="C":
+            if type == "C":
                 Users.objects.create(email=email, username=username, password=hashed_password, type=type)
             else:
                 Providers.objects.create(email=email, username=username, password=hashed_password, type=type)
@@ -279,8 +279,9 @@ def update_psw(request):
         username = request.POST.get('username')
         new_psw = request.POST.get('psw')
         hashed_password = make_password(new_psw)
+        print(type)
         try:
-            if type=="C":
+            if type == "C":
                 user_profile = get_object_or_404(Users, username=username)
             else:
                 user_profile = get_object_or_404(Providers, username=username)
