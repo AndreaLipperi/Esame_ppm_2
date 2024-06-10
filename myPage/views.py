@@ -236,7 +236,7 @@ def controlla_username(request):
 
         # Configura i dettagli dell'email
         oggetto = "Cambio password"
-        messaggio = "Clicca sul link per cambiare la password: https://esame-ppm-2.vercel.app/update_psw_page/?username=" + username
+        messaggio = "Clicca sul link per cambiare la password: https://esame-ppm-2.vercel.app/update_psw_page/?username=" + username + "&user_type="+ type
         email_from = settings.EMAIL_HOST_USER
         recipient_list = [email]
 
