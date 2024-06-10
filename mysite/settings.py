@@ -38,6 +38,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "myPage.middleware.DatabaseRouterMiddleware",
 ]
 
 ROOT_URLCONF = "mysite.urls"
@@ -63,7 +64,12 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 DATABASES = {
-        'default': {
+        'default': {},
+        'db_localhost': {
+          'ENGINE': 'django.db.backends.sqlite3',
+          'NAME': BASE_DIR / 'ingrossodb.sqlite3',
+        },
+        'db_vercel': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': str(os.getenv('POSTGRES_DATABASE', 'verceldb')),
             'USER': str(os.getenv('POSTGRES_USER', 'default')),
@@ -73,7 +79,7 @@ DATABASES = {
             'OPTIONS': {
                 'sslmode': 'require',
             },
-        }
+        },
     }
 
 # Rimuovi la configurazione di un secondo database se non necessaria
